@@ -1,0 +1,17 @@
+Doctor summary (to see all details, run flutter doctor -v):
+[!] Flutter (Channel stable, 3.24.3, on Microsoft Windows [Version 10.0.26100.7171], locale en-KE)
+    ! The flutter binary is not on your path. Consider adding C:\src\flutter\bin to your path.
+    ! The dart binary is not on your path. Consider adding C:\src\flutter\bin to your path.
+[√] Windows Version (Installed version of Windows is version 10 or higher)
+[√] Android toolchain - develop for Android devices (Android SDK version 35.0.1)
+[√] Chrome - develop for the web
+[X] Visual Studio - develop Windows apps
+    X Visual Studio not installed; this is necessary to develop Windows apps.
+      Download at https://visualstudio.microsoft.com/downloads/.
+      Please install the "Desktop development with C++" workload, including all of its default components
+[√] Android Studio (version 2024.3)
+[√] VS Code (version 1.106.1)
+[√] Connected device (3 available)
+[√] Network resources
+
+! Doctor found issues in 2 categories.

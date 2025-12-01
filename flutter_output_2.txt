@@ -1,0 +1,17 @@
+Command exited with code 128: git fetch --tags
+Standard error: error: RPC failed; curl 18 transfer closed with outstanding read data remaining
+error: 6733 bytes of body are still expected
+fetch-pack: unexpected disconnect while reading sideband packet
+fatal: early EOF
+fatal: fetch-pack: invalid index-pack output
+
+
+┌─────────────────────────────────────────────────────────┐
+│ WARNING: your installation of Flutter is 436 days old.  │
+│                                                         │
+│ To update to the latest version, run "flutter upgrade". │
+└─────────────────────────────────────────────────────────┘
+Flutter 3.24.3 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision 2663184aa7 (1 year, 2 months ago) • 2024-09-11 16:27:48 -0500
+Engine • revision 36335019a8
+Tools • Dart 3.5.3 • DevTools 2.37.3

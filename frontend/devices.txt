@@ -1,0 +1,9 @@
+Found 4 connected devices:
+  SM A155F (mobile) • RF8XA0CMXWJ • android-arm64  • Android 15 (API 35)
+  Windows (desktop) • windows     • windows-x64    • Microsoft Windows [Version 10.0.26100.7171]
+  Chrome (web)      • chrome      • web-javascript • Google Chrome 138.0.7204.102
+  Edge (web)        • edge        • web-javascript • Microsoft Edge 142.0.3595.94
+
+Run "flutter emulators" to list and start any available device emulators.
+
+If you expected another device to be detected, please run "flutter doctor" to diagnose potential issues. You may also try increasing the time to wait for connected devices with the "--device-timeout" flag. Visit https://flutter.dev/setup/ for troubleshooting tips.
