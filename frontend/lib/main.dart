@@ -17,8 +17,11 @@ import 'providers/marketplace_provider.dart';
 import 'services/ad_service.dart';
 import 'services/notification_service.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await AdService.init();
   
   // Initialize Notification Service

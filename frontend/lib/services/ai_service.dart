@@ -1,8 +1,10 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AIService {
   // TODO: Move this to a secure environment variable in production
-  static const String _apiKey = 'AIzaSyAHy28TTIopa6rBYJU7z4COLyMt9ktuDxE';
+  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
   late final GenerativeModel _model;
 
   AIService() {
