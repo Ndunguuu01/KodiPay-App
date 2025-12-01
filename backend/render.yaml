@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: kodipay-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: DB_DIALECT
+        value: postgres
+      - key: DB_HOST
+        fromDatabase:
+          name: kodipay-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: kodipay-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: kodipay-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: kodipay-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: kodipay-db
+    plan: free
+    databaseName: kodipay
+    user: kodipay_user
