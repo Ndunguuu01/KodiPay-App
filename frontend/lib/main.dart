@@ -18,10 +18,12 @@ import 'services/ad_service.dart';
 import 'services/notification_service.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
   await AdService.init();
   
   // Initialize Notification Service

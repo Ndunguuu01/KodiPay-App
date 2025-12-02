@@ -4,6 +4,7 @@ import '../models/payment.dart';
 import '../providers/payment_provider.dart';
 import '../utils/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/stripe_service.dart';
 
 class MakePaymentScreen extends StatefulWidget {
   const MakePaymentScreen({super.key});
@@ -61,6 +62,25 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
         );
       }
     }
+  }
+
+  void _payWithCard() async {
+    if (_amountController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter amount')),
+      );
+      return;
+    }
+
+    final amount = double.tryParse(_amountController.text);
+    if (amount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid amount')),
+      );
+      return;
+    }
+
+    await StripeService().makePayment(context, amount, 'usd');
   }
 
   @override
@@ -147,6 +167,19 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                             style: TextStyle(fontSize: 18),
                           ),
                   );
+                },
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _payWithCard,
+                icon: const Icon(Icons.credit_card),
+                label: const Text('Pay with Card (Stripe)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
                 },
               ),
               if (Provider.of<PaymentProvider>(context).errorMessage != null)

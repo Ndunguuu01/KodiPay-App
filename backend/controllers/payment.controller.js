@@ -4,6 +4,29 @@ const Unit = db.units;
 const Op = db.Sequelize.Op;
 
 const MpesaService = require('../services/mpesa.service');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+// Create Stripe Payment Intent
+exports.createPaymentIntent = async (req, res) => {
+    try {
+        const { amount, currency } = req.body;
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: currency || 'usd',
+            automatic_payment_methods: {
+                enabled: true,
+            },
+        });
+
+        res.send({
+            clientSecret: paymentIntent.client_secret,
+        });
+    } catch (error) {
+        console.error("Stripe Error:", error);
+        res.status(500).send({ error: error.message });
+    }
+};
 
 // Create a new Payment (Initiate M-Pesa STK Push)
 exports.create = async (req, res) => {

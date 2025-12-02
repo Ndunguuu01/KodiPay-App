@@ -25,4 +25,10 @@ module.exports = function (app) {
         "/api/payments/callback",
         controller.callback // Public endpoint for M-Pesa
     );
+
+    app.post(
+        "/api/payments/create-payment-intent",
+        [verifyToken],
+        controller.createPaymentIntent
+    );
 };
