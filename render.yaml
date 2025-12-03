@@ -32,3 +32,12 @@ databases:
     databaseName: kodipay
     user: kodipay_user
     plan: free
+
+staticSites:
+  - name: kodipay-web
+    buildCommand: cd frontend && flutter build web --release
+    publishDir: frontend/build/web
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
