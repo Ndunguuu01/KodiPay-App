@@ -2,9 +2,9 @@ services:
   - type: web
     name: kodipay-backend
     env: node
-    root: backend
-    buildCommand: npm install
-    startCommand: npm start
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
     envVars:
       - key: PORT
         value: "10000"
@@ -31,3 +31,4 @@ databases:
   - name: kodipay-db
     databaseName: kodipay
     user: kodipay_user
+    plan: free
