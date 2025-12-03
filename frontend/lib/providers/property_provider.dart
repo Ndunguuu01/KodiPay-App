@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/property.dart';
 import '../services/property_service.dart';
 
@@ -43,12 +44,12 @@ class PropertyProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> addProperty(Property property, {int? roomsPerFloor, double? defaultRent}) async {
+  Future<bool> addProperty(Property property, {int? roomsPerFloor, double? defaultRent, XFile? imageFile}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _propertyService.createProperty(property, roomsPerFloor: roomsPerFloor, defaultRent: defaultRent);
+    final result = await _propertyService.createProperty(property, roomsPerFloor: roomsPerFloor, defaultRent: defaultRent, imageFile: imageFile);
 
     _isLoading = false;
     if (result['success']) {

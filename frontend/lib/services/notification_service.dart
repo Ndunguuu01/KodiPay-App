@@ -5,6 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 
 class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+
+  factory NotificationService() {
+    return _instance;
+  }
+
+  NotificationService._internal();
+
   late IO.Socket socket;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();

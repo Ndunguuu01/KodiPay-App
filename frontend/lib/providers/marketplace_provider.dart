@@ -1,12 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/marketplace_ad.dart';
 import '../services/marketplace_service.dart';
+import '../services/socket_service.dart';
 
 class MarketplaceProvider with ChangeNotifier {
   final MarketplaceService _marketplaceService = MarketplaceService();
+  final SocketService _socketService = SocketService();
   List<MarketplaceAd> _ads = [];
   bool _isLoading = false;
   String? _errorMessage;
+
+  MarketplaceProvider() {
+    _initSocket();
+  }
+
+  void _initSocket() {
+    _socketService.init();
+    _socketService.on('new_ad', (data) {
+      fetchAds(); // Refresh list when new ad is received
+    });
+  }
+
+  @override
+  void dispose() {
+    _socketService.dispose();
+    super.dispose();
+  }
 
   List<MarketplaceAd> get ads => _ads;
   bool get isLoading => _isLoading;
@@ -27,12 +47,12 @@ class MarketplaceProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> postAd(MarketplaceAd ad) async {
+  Future<bool> postAd(MarketplaceAd ad, XFile? imageFile) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _marketplaceService.postAd(ad);
+    final result = await _marketplaceService.postAd(ad, imageFile);
 
     _isLoading = false;
     if (result['success']) {
@@ -43,5 +63,13 @@ class MarketplaceProvider with ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Future<bool> deleteAd(int adId) async {
+    final success = await _marketplaceService.deleteAd(adId);
+    if (success) {
+      await fetchAds();
+    }
+    return success;
   }
 }

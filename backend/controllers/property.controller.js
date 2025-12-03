@@ -17,7 +17,8 @@ exports.create = (req, res) => {
         name: req.body.name,
         location: req.body.location,
         floors_count: req.body.floors_count,
-        landlord_id: req.body.landlord_id
+        landlord_id: req.body.landlord_id,
+        image_url: req.file ? req.file.path : null // Save Cloudinary URL
     };
 
     Property.create(property)

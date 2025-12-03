@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/property.dart';
@@ -53,7 +54,7 @@ class PropertyService {
     }
   }
 
-  Future<Map<String, dynamic>> createProperty(Property property, {int? roomsPerFloor, double? defaultRent}) async {
+  Future<Map<String, dynamic>> createProperty(Property property, {int? roomsPerFloor, double? defaultRent, XFile? imageFile}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
@@ -70,19 +71,31 @@ class PropertyService {
         }
       }
 
-      final body = property.toJson();
-      body['landlord_id'] = userId; // Ensure landlord_id is set
-      if (roomsPerFloor != null) body['rooms_per_floor'] = roomsPerFloor;
-      if (defaultRent != null) body['default_rent'] = defaultRent;
+      final request = http.MultipartRequest('POST', Uri.parse('${AppConstants.baseUrl}/properties'));
+      request.headers.addAll({
+        'x-access-token': token ?? '',
+      });
 
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}/properties'),
-        headers: {
-          'Content-Type': 'application/json',
-          'x-access-token': token ?? '',
-        },
-        body: jsonEncode(body),
-      );
+      // Add fields
+      request.fields['name'] = property.name;
+      request.fields['location'] = property.location;
+      request.fields['floors_count'] = property.floorsCount.toString();
+      request.fields['landlord_id'] = userId.toString();
+      if (roomsPerFloor != null) request.fields['rooms_per_floor'] = roomsPerFloor.toString();
+      if (defaultRent != null) request.fields['default_rent'] = defaultRent.toString();
+
+      // Add file
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        request.files.add(http.MultipartFile.fromBytes(
+          'image', 
+          bytes,
+          filename: imageFile.name,
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       final data = jsonDecode(response.body);
 

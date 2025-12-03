@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/bill_provider.dart';
 import '../utils/constants.dart';
+import 'make_payment_screen.dart';
 
 class MyBillsScreen extends StatefulWidget {
   const MyBillsScreen({super.key});
@@ -23,24 +24,16 @@ class _MyBillsScreenState extends State<MyBillsScreen> {
     });
   }
 
-  void _payBill(int billId) async {
-    // In a real app, this would trigger a payment flow (M-Pesa, etc.)
-    // For now, we'll just mark it as paid.
-    final success = await Provider.of<BillProvider>(context, listen: false).markAsPaid(billId);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bill marked as paid!')),
-      );
-      // Refresh list
-      final userId = Provider.of<AuthProvider>(context, listen: false).userId;
-      if (userId != null) {
-        Provider.of<BillProvider>(context, listen: false).fetchBillsByTenant(userId);
-      }
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update bill status')),
-      );
-    }
+  void _payBill(int billId, double amount, int unitId, int tenantId) async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MakePaymentScreen(
+          initialAmount: amount,
+          unitId: unitId,
+          tenantId: tenantId,
+        ),
+      ),
+    );
   }
 
   @override
@@ -139,7 +132,7 @@ class _MyBillsScreenState extends State<MyBillsScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () => _payBill(bill.id!),
+                            onPressed: () => _payBill(bill.id!, bill.amount, bill.unitId, bill.tenantId),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppConstants.primaryColor,
                               foregroundColor: Colors.white,

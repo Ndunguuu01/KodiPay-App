@@ -31,4 +31,10 @@ module.exports = function (app) {
         [verifyToken],
         controller.createPaymentIntent
     );
+
+    app.post(
+        "/api/payments/confirm-stripe",
+        [verifyToken],
+        controller.confirmStripePayment
+    );
 };

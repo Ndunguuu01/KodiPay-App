@@ -5,7 +5,7 @@ class AppConstants {
   // API URL
   static const String baseUrl = kReleaseMode 
       ? 'https://kodipay-app.onrender.com/api' 
-      : 'https://kodipay-app.onrender.com/api'; // Using live backend for testing
+      : 'http://192.168.0.102:8080/api'; // Local IP for physical device testing
   
   // Colors - Premium Theme
   static const Color primaryColor = Color(0xFF1A237E); // Deep Navy Blue

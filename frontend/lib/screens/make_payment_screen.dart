@@ -7,7 +7,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/stripe_service.dart';
 
 class MakePaymentScreen extends StatefulWidget {
-  const MakePaymentScreen({super.key});
+  final double? initialAmount;
+  final int? unitId;
+  final int? tenantId;
+
+  const MakePaymentScreen({
+    super.key, 
+    this.initialAmount, 
+    this.unitId, 
+    this.tenantId
+  });
 
   @override
   State<MakePaymentScreen> createState() => _MakePaymentScreenState();
@@ -15,9 +24,20 @@ class MakePaymentScreen extends StatefulWidget {
 
 class _MakePaymentScreenState extends State<MakePaymentScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
+  late TextEditingController _amountController;
   final _phoneController = TextEditingController();
-  final _unitIdController = TextEditingController(); // In real app, select from dropdown
+  late TextEditingController _unitIdController;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(
+      text: widget.initialAmount?.toString() ?? ''
+    );
+    _unitIdController = TextEditingController(
+      text: widget.unitId?.toString() ?? ''
+    );
+  }
 
   @override
   void dispose() {
@@ -41,7 +61,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
 
       // Mock unit ID for now if not provided, or assume user knows it
       // Ideally we fetch user's rented unit
-      int unitId = int.tryParse(_unitIdController.text) ?? 1; 
+      int unitId = widget.unitId ?? int.tryParse(_unitIdController.text) ?? 1; 
 
       final payment = Payment(
         tenantId: userId,
@@ -80,7 +100,18 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
       return;
     }
 
-    await StripeService().makePayment(context, amount, 'usd');
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId');
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not found. Please login again.')),
+      );
+      return;
+    }
+
+    int unitId = widget.unitId ?? int.tryParse(_unitIdController.text) ?? 1;
+
+    await StripeService().makePayment(context, amount, 'usd', userId, unitId);
   }
 
   @override
@@ -153,33 +184,36 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
               const SizedBox(height: 32),
               Consumer<PaymentProvider>(
                 builder: (context, provider, child) {
-                  return ElevatedButton(
-                    onPressed: provider.isLoading ? null : _submitPayment,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: provider.isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Pay Now',
-                            style: TextStyle(fontSize: 18),
-                          ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: provider.isLoading ? null : _submitPayment,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: provider.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'Pay Now (M-Pesa)',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _payWithCard,
+                        icon: const Icon(Icons.credit_card),
+                        label: const Text('Pay with Card (Stripe)'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
+                    ],
                   );
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _payWithCard,
-                icon: const Icon(Icons.credit_card),
-                label: const Text('Pay with Card (Stripe)'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
                 },
               ),
               if (Provider.of<PaymentProvider>(context).errorMessage != null)

@@ -3,6 +3,7 @@ const Property = db.properties;
 const Unit = db.units;
 const Lease = db.leases;
 const Maintenance = db.maintenance;
+const Payment = db.payments;
 const Op = db.Sequelize.Op;
 
 exports.getLandlordInsights = async (req, res) => {
@@ -68,13 +69,35 @@ exports.getLandlordInsights = async (req, res) => {
             }]
         });
 
+        // 6. Fraud Alerts
+        // Payments with fraud_status != 'approved' linked to units owned by landlord
+        const fraudAlerts = await Payment.findAll({
+            where: {
+                fraud_status: { [Op.ne]: 'approved' }
+            },
+            include: [{
+                model: Unit,
+                as: 'unit',
+                required: true,
+                include: [{
+                    model: Property,
+                    as: 'property',
+                    where: { landlord_id: landlordId },
+                    required: true
+                }]
+            }],
+            order: [['created_at', 'DESC']],
+            limit: 5
+        });
+
         res.status(200).send({
             totalProperties,
             totalUnits,
             occupiedUnits,
             occupancyRate,
             monthlyRevenue,
-            pendingMaintenance
+            pendingMaintenance,
+            fraudAlerts
         });
 
     } catch (err) {

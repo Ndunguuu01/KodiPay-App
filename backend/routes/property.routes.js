@@ -1,6 +1,8 @@
 const { verifyToken, isLandlord } = require("../middleware/authJwt");
 const controller = require("../controllers/property.controller");
 
+const upload = require("../services/upload.service");
+
 module.exports = function (app) {
     app.use(function (req, res, next) {
         res.header(
@@ -12,7 +14,7 @@ module.exports = function (app) {
 
     app.post(
         "/api/properties",
-        [verifyToken, isLandlord],
+        [verifyToken, isLandlord, upload.single('image')],
         controller.create
     );
 

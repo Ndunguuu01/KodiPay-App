@@ -73,6 +73,11 @@ exports.findAll = (req, res) => {
                 model: db.users,
                 as: 'sender',
                 attributes: ['name']
+            },
+            {
+                model: db.users,
+                as: 'receiver',
+                attributes: ['name']
             }
         ]
     })

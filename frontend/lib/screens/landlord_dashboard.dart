@@ -18,6 +18,7 @@ import '../services/notification_service.dart';
 import '../services/report_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/ad_service.dart';
+import 'post_ad_screen.dart';
 import '../widgets/promo_carousel.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/empty_state.dart';
@@ -118,9 +119,35 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                       child: Center(child: CircularProgressIndicator()),
                     )
                   else if (_insights != null)
-                    _buildStatsGrid(),
+                    Column(
+                      children: [
+                        _buildStatsGrid(),
+                        if (_insights!['fraudAlerts'] != null && (_insights!['fraudAlerts'] as List).isNotEmpty)
+                          _buildRiskAlerts(_insights!['fraudAlerts']),
+                      ],
+                    ),
                   
                   const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Marketplace',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const PostAdScreen()),
+                            );
+                          },
+                          child: const Text('Post Ad'),
+                        ),
+                      ],
+                    ),
+                  ),
                   const PromoCarousel(),
                   
                   Padding(
@@ -317,6 +344,41 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiskAlerts(List<dynamic> alerts) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Risk Alerts',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppConstants.errorColor),
+          ),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: alerts.length,
+            itemBuilder: (context, index) {
+              final alert = alerts[index];
+              return Card(
+                color: Colors.red[50],
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: const Icon(Icons.warning, color: Colors.red),
+                  title: Text('Suspicious Payment: KES ${alert['amount']}'),
+                  subtitle: Text('Unit: ${alert['unit']['unit_number']} - ${alert['fraud_flags'][0]}'),
+                  trailing: Text(alert['fraud_status'].toString().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );

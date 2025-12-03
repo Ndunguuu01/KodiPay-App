@@ -19,6 +19,7 @@ class Message {
     this.isRead = false,
     this.createdAt,
     this.senderName,
+    this.receiverName,
     this.type,
   });
 
@@ -32,9 +33,12 @@ class Message {
       isRead: json['is_read'] ?? false,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       senderName: json['sender'] != null ? json['sender']['name'] : null,
+      receiverName: json['receiver'] != null ? json['receiver']['name'] : null,
       type: json['type'] ?? 'text',
     );
   }
+
+  final String? receiverName;
 
   Map<String, dynamic> toJson() {
     return {

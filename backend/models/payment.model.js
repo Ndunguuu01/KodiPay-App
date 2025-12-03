@@ -32,6 +32,14 @@ module.exports = (sequelize, Sequelize) => {
         date: {
             type: Sequelize.DATE,
             defaultValue: Sequelize.NOW
+        },
+        fraud_status: {
+            type: Sequelize.ENUM('approved', 'review', 'rejected'),
+            defaultValue: 'approved'
+        },
+        fraud_flags: {
+            type: Sequelize.JSON, // Store array of flags
+            allowNull: true
         }
     });
 

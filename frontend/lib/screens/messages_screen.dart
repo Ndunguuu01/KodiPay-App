@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/message_provider.dart';
 import '../utils/constants.dart';
 import 'compose_message_screen.dart';
@@ -8,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/empty_state.dart';
+import 'chat_screen.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
@@ -17,21 +19,11 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
-  int? _currentUserId;
-
   @override
   void initState() {
     super.initState();
-    _loadUserId();
     Future.microtask(() =>
         Provider.of<MessageProvider>(context, listen: false).fetchMessages());
-  }
-
-  void _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _currentUserId = prefs.getInt('userId');
-    });
   }
 
   @override
@@ -66,89 +58,106 @@ class _MessagesScreenState extends State<MessagesScreen> {
             );
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: AnimationLimiter(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: provider.messages.length,
-                    itemBuilder: (context, index) {
-                      final message = provider.messages[index];
-                      final isMe = message.senderId == _currentUserId;
+          // Group messages by conversation
+          final Map<String, dynamic> conversations = {};
+          final currentUserId = Provider.of<AuthProvider>(context, listen: false).userId;
+          
+          for (var message in provider.messages) {
+            String key;
+            String title;
+            int? targetUserId;
+            int? groupId;
+            
+            if (message.groupId != null) {
+              key = 'group_${message.groupId}';
+              title = 'Property Group ${message.groupId}'; // Ideally fetch property name
+              groupId = message.groupId;
+            } else {
+              final otherId = message.senderId == currentUserId 
+                  ? message.receiverId 
+                  : message.senderId;
+              key = 'user_$otherId';
+              
+              // Determine Title (Name of the other person)
+              if (message.senderId == currentUserId) {
+                // I sent it, show Receiver Name
+                title = message.receiverName ?? 'User $otherId';
+              } else {
+                // I received it, show Sender Name
+                title = message.senderName ?? 'User $otherId';
+              }
+              targetUserId = otherId;
+            }
 
-                      return AnimationConfiguration.staggeredList(
-                        position: index,
-                        duration: const Duration(milliseconds: 375),
-                        child: SlideAnimation(
-                          verticalOffset: 50.0,
-                          child: FadeInAnimation(
-                            child: Card(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              color: isMe ? Colors.blue[50] : Colors.white,
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: isMe ? AppConstants.primaryColor : Colors.grey,
-                                  child: Icon(
-                                    isMe ? Icons.person : Icons.person_outline,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                title: Text(
-                                  isMe ? 'Me' : 'User ${message.senderId}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: message.type == 'image'
-                                    ? Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: Image.memory(
-                                            base64Decode(message.content),
-                                            height: 150,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return const Text('Error loading image');
-                                            },
-                                          ),
-                                        ),
-                                      )
-                                    : Text(message.content),
-                                trailing: message.createdAt != null
-                                    ? Text(
-                                        '${message.createdAt!.hour}:${message.createdAt!.minute.toString().padLeft(2, '0')}',
-                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ),
+            // Keep the latest message for the preview
+            if (!conversations.containsKey(key) || 
+                (message.createdAt != null && conversations[key]['message'].createdAt!.isBefore(message.createdAt!))) {
+              conversations[key] = {
+                'message': message,
+                'title': title,
+                'targetUserId': targetUserId,
+                'groupId': groupId,
+              };
+            }
+          }
+
+          final sortedConversations = conversations.values.toList()
+            ..sort((a, b) => b['message'].createdAt!.compareTo(a['message'].createdAt!));
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: sortedConversations.length,
+            itemBuilder: (context, index) {
+              final conversation = sortedConversations[index];
+              final message = conversation['message'];
+              final title = conversation['title'];
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                elevation: 1,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppConstants.primaryColor.withOpacity(0.1),
+                    child: Icon(
+                      conversation['groupId'] != null ? Icons.group : Icons.person,
+                      color: AppConstants.primaryColor,
+                    ),
+                  ),
+                  title: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    message.type == 'image' ? '📷 Image' : message.content,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: message.senderId == currentUserId ? Colors.grey : Colors.black87,
+                      fontStyle: message.senderId == currentUserId ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                  trailing: message.createdAt != null
+                      ? Text(
+                          '${message.createdAt!.hour}:${message.createdAt!.minute.toString().padLeft(2, '0')}',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        )
+                      : null,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                          targetUserId: conversation['targetUserId'],
+                          targetUserName: title,
+                          groupId: conversation['groupId'],
+                          groupName: title,
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              if (provider.isTyping && provider.typingUser != null)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${provider.typingUser} is typing...',
-                        style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-            ],
+              );
+            },
           );
         },
       ),

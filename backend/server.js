@@ -43,6 +43,11 @@ require("./routes/bill.routes")(app);
 require("./routes/maintenance.routes")(app);
 require("./routes/dashboard.routes")(app);
 require("./routes/ad.routes")(app);
+require("./routes/notification.routes")(app);
+
+// Initialize Cron Service
+const CronService = require('./services/cron.service');
+CronService.init();
 
 const server = http.createServer(app);
 const io = new Server(server, {

@@ -15,7 +15,7 @@ class StripeService {
 
   StripeService._internal();
 
-  Future<void> makePayment(BuildContext context, double amount, String currency) async {
+  Future<void> makePayment(BuildContext context, double amount, String currency, int tenantId, int unitId) async {
     try {
       // 1. Create Payment Intent on Backend
       final paymentIntentData = await createPaymentIntent(amount, currency);
@@ -38,6 +38,9 @@ class StripeService {
       // 3. Display Payment Sheet
       await displayPaymentSheet(context);
 
+      // 4. Confirm Payment on Backend
+      await confirmPayment(context, clientSecret, amount, tenantId, unitId);
+
     } catch (e) {
       print('Stripe Payment Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +52,7 @@ class StripeService {
   Future<Map<String, dynamic>?> createPaymentIntent(double amount, String currency) async {
     try {
       final token = await AuthService().getToken();
-      final url = Uri.parse('${Constants.baseUrl}/payments/create-payment-intent');
+      final url = Uri.parse('${AppConstants.baseUrl}/payments/create-payment-intent');
 
       final response = await http.post(
         url,
@@ -95,6 +98,41 @@ class StripeService {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
+    }
+  }
+
+  Future<void> confirmPayment(BuildContext context, String paymentIntentId, double amount, int tenantId, int unitId) async {
+    try {
+      final token = await AuthService().getToken();
+      final url = Uri.parse('${AppConstants.baseUrl}/payments/confirm-stripe');
+
+      // Extract PaymentIntent ID from Client Secret (pi_..._secret_...)
+      final piId = paymentIntentId.split('_secret_')[0];
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': token ?? '',
+        },
+        body: json.encode({
+          'paymentIntentId': piId,
+          'amount': amount,
+          'tenant_id': tenantId,
+          'unit_id': unitId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Payment confirmed on backend');
+      } else {
+        print('Failed to confirm payment on backend: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment recorded failed: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      print('Error confirming payment: $e');
     }
   }
 }

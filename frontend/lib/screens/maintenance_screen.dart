@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
+import '../providers/lease_provider.dart';
 import '../providers/maintenance_provider.dart';
 import '../models/maintenance_request.dart';
 import '../utils/constants.dart';
@@ -83,24 +84,23 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
               return ElevatedButton(
                 onPressed: provider.isLoading ? null : () async {
                   if (_formKey.currentState!.validate()) {
-                    // Note: In a real app, we should fetch the correct unit_id.
-                    // For now, we'll rely on the backend or a placeholder if needed.
-                    // But the backend requires unit_id.
-                    // Let's assume the backend can infer it or we need to pass a valid one.
-                    // Since we don't have easy access to unit_id here without fetching leases,
-                    // we might need to update the provider to handle this or pass a dummy one for now if the backend allows.
-                    // However, the backend checks for unit_id.
-                    // We will pass a placeholder '1' for now as per previous logic or improve this.
-                    // Actually, let's fetch it properly if possible, or just pass 1 for testing.
+                    // Fetch active lease to get unitId
+                    final leaseProvider = Provider.of<LeaseProvider>(context, listen: false);
+                    final activeLeases = leaseProvider.leases.where((l) => l.status == 'active');
                     
-                    // Better approach: The backend should probably find the unit for the tenant.
-                    // But the current backend requires unit_id in body.
-                    // Let's use a hardcoded 1 for now to unblock, assuming unit 1 exists.
-                    // In production, we'd fetch active lease.
-                    
+                    if (activeLeases.isEmpty) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No active lease found. Cannot report issue.')),
+                      );
+                      return;
+                    }
+
+                    final activeLease = activeLeases.first;
+
                     final request = MaintenanceRequest(
                       tenantId: _userId!,
-                      unitId: 1, // Placeholder, should be dynamic
+                      unitId: activeLease.unitId,
                       issueType: _issueType,
                       description: _descriptionController.text,
                       priority: 'medium',

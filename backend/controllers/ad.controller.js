@@ -21,7 +21,7 @@ exports.create = (req, res) => {
         title: req.body.title,
         description: req.body.description,
         contact_info: req.body.contact_info,
-        image_url: req.body.image_url,
+        image_url: req.file ? req.file.path : req.body.image_url, // Use uploaded file or fallback
         type: req.body.type || 'image',
         expires_at: expiresAt,
         user_id: req.body.user_id
@@ -30,6 +30,10 @@ exports.create = (req, res) => {
     // Save Ad in the database
     Ad.create(ad)
         .then(data => {
+            // Emit socket event
+            const io = req.app.get('socketio');
+            io.emit('new_ad', data);
+
             res.send(data);
         })
         .catch(err => {
@@ -58,6 +62,36 @@ exports.findAll = (req, res) => {
             res.status(500).send({
                 message:
                     err.message || "Some error occurred while retrieving ads."
+            });
+        });
+};
+
+// Delete an Ad with the specified id in the request
+// Delete an Ad with the specified id in the request
+exports.delete = (req, res) => {
+    const id = req.params.id;
+    const userId = req.userId; // Get user ID from token
+
+    Ad.destroy({
+        where: {
+            id: id,
+            user_id: userId // Ensure the ad belongs to the user
+        }
+    })
+        .then(num => {
+            if (num == 1) {
+                res.send({
+                    message: "Ad was deleted successfully!"
+                });
+            } else {
+                res.send({
+                    message: `Cannot delete Ad with id=${id}. Maybe Ad was not found or you are not the owner!`
+                });
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Could not delete Ad with id=" + id
             });
         });
 };

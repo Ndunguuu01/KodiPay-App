@@ -1,3 +1,6 @@
+import 'dart:io' show File;
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/property.dart';
@@ -18,6 +21,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final _floorsController = TextEditingController();
   final _roomsPerFloorController = TextEditingController();
   final _defaultRentController = TextEditingController();
+  
+  XFile? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -42,6 +57,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
             property,
             roomsPerFloor: int.parse(_roomsPerFloorController.text.trim()),
             defaultRent: double.parse(_defaultRentController.text.trim()),
+            imageFile: _selectedImage,
           );
 
       if (success && mounted) {
@@ -146,6 +162,42 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 150,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: _selectedImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.network(
+                                  _selectedImage!.path,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : Image.file(
+                                  File(_selectedImage!.path),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text('Tap to add property photo', style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                ),
               ),
               const SizedBox(height: 24),
               Consumer<PropertyProvider>(

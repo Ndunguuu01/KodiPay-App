@@ -109,6 +109,15 @@ class _PostAdScreenState extends State<PostAdScreen> {
         }
         
         await controller.initialize();
+
+        if (controller.value.duration.inSeconds > 30) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Video too long. Please select a video under 30 seconds.')),
+            );
+          }
+          return;
+        }
         
         setState(() {
           _mediaFile = pickedFile;
@@ -132,31 +141,16 @@ class _PostAdScreenState extends State<PostAdScreen> {
     final userId = Provider.of<AuthProvider>(context, listen: false).userId;
     if (userId == null) return;
 
-    String? base64Media;
-    if (_mediaFile != null) {
-      List<int> mediaBytes = await _mediaFile!.readAsBytes();
-      // Check file size roughly (e.g., limit to 5MB for base64 to avoid crashes)
-      if (mediaBytes.length > 5 * 1024 * 1024) {
-         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File too large. Please choose a smaller file (< 5MB).')),
-          );
-        }
-        return;
-      }
-      base64Media = base64Encode(mediaBytes);
-    }
-
     final ad = MarketplaceAd(
       title: _titleController.text,
       description: _descriptionController.text,
       contactInfo: _contactController.text,
-      imageUrl: base64Media, // Sending base64 string
+      imageUrl: null, // Image handled separately
       type: _mediaType,
       userId: userId,
     );
 
-    final success = await Provider.of<MarketplaceProvider>(context, listen: false).postAd(ad);
+    final success = await Provider.of<MarketplaceProvider>(context, listen: false).postAd(ad, _mediaFile);
 
     if (mounted) {
       if (success) {

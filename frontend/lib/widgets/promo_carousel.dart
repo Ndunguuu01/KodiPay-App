@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import '../providers/marketplace_provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../models/marketplace_ad.dart';
 
@@ -45,7 +46,9 @@ class _PromoCarouselState extends State<PromoCarousel> {
 
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
-      final ads = Provider.of<MarketplaceProvider>(context, listen: false).ads;
+      final allAds = Provider.of<MarketplaceProvider>(context, listen: false).ads;
+      final ads = allAds.where((ad) => ad.imageUrl != null && ad.imageUrl!.isNotEmpty).toList();
+      
       if (ads.isEmpty) return;
 
       _currentPage++;
@@ -74,7 +77,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
       return Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: MemoryImage(base64Decode(ad.imageUrl!)),
+            image: NetworkImage(ad.imageUrl!), // Changed to NetworkImage
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.black.withOpacity(0.3),
@@ -100,6 +103,9 @@ class _PromoCarouselState extends State<PromoCarousel> {
   Widget build(BuildContext context) {
     return Consumer<MarketplaceProvider>(
       builder: (context, provider, child) {
+        // Filter out ads without images
+        final ads = provider.ads.where((ad) => ad.imageUrl != null && ad.imageUrl!.isNotEmpty).toList();
+
         if (provider.isLoading) {
           return SizedBox(
             height: 180,
@@ -107,7 +113,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
           );
         }
 
-        if (provider.ads.isEmpty) {
+        if (ads.isEmpty) {
           return SizedBox(
             height: 180,
             child: Center(
@@ -123,100 +129,147 @@ class _PromoCarouselState extends State<PromoCarousel> {
           );
         }
 
-        return SizedBox(
-          height: 180,
-          child: PageView.builder(
-            controller: _pageController,
-            // itemCount: null, // Infinite scrolling
-            onPageChanged: (int index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              // Use modulo to loop through ads
-              final adIndex = index % provider.ads.length;
-              final ad = provider.ads[adIndex];
-              
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8), // Adjusted margin
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      _buildMediaContent(ad, adIndex),
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800), // Constrain width on web
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: PageView.builder(
+                controller: _pageController,
+                // itemCount: null, // Infinite scrolling
+                onPageChanged: (int index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  // Use modulo to loop through ads
+                  final adIndex = index % ads.length;
+                  final ad = ads[adIndex];
+                  
+                  return GestureDetector(
+                    onLongPress: () {
+                      final currentUserId = Provider.of<AuthProvider>(context, listen: false).userId;
+                      if (currentUserId != null && currentUserId == ad.userId) {
+                        _showDeleteDialog(context, ad);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('You can only delete your own ads')),
+                        );
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8), // Adjusted margin
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Stack(
+                          fit: StackFit.expand,
                           children: [
-                            Text(
-                              ad.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              ad.description ?? '',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (ad.contactInfo != null) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.phone, color: Colors.white, size: 16),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      ad.contactInfo!,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                            _buildMediaContent(ad, adIndex),
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    ad.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    ad.description ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (ad.contactInfo != null) ...[
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.phone, color: Colors.white, size: 16),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            ad.contactInfo!,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
         );
       },
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, MarketplaceAd ad) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Ad'),
+        content: const Text('Are you sure you want to delete this ad?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              if (ad.id != null) {
+                final success = await Provider.of<MarketplaceProvider>(context, listen: false).deleteAd(ad.id!);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(success ? 'Ad deleted' : 'Failed to delete ad')),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }

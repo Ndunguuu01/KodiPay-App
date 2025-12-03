@@ -29,6 +29,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         terms: {
             type: Sequelize.TEXT
+        },
+        next_due_date: {
+            type: Sequelize.DATEONLY
         }
     });
 

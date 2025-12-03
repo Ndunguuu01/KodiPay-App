@@ -3,6 +3,7 @@
         android:label="KodiPay"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
+        android:theme="@style/NormalTheme"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
