@@ -31,6 +31,7 @@ databases:
   - name: kodipay-db
     databaseName: kodipay
     user: kodipay_user
+    plan: free
 
 staticSites:
   - name: kodipay-web
