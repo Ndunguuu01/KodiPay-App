@@ -1,8 +1,4 @@
 staticSites:
-  - name: kodipay-web
+  - name: kodipay-frontend
     buildCommand: echo 'Using pre-built files'
     publishDir: frontend/build/web
-    routes:
-      - type: rewrite
-        source: "/*"
-        destination: /index.html
