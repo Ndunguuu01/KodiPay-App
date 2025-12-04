@@ -1,6 +1,7 @@
 node_modules/
 .env
 build/
+!frontend/build/web/
 .dart_tool/
 *.zip
 flutter_windows_*.zip

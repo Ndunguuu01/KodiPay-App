@@ -1,11 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppConstants {
   // API URL
-  static const String baseUrl = kReleaseMode 
-      ? 'https://kodipay-app.onrender.com/api' 
-      : 'http://192.168.0.102:8080/api'; // Local IP for physical device testing
+  static const String baseUrl = 'https://kodipay-backend.onrender.com/api'; 
   
   // Colors - Premium Theme
   static const Color primaryColor = Color(0xFF1A237E); // Deep Navy Blue
