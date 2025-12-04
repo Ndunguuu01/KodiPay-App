@@ -21,11 +21,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const db = require("./models");
-db.sequelize.sync(); // Normal sync
-// In development, you might want to drop and re-sync:
-// db.sequelize.sync({ alter: true }).then(() => {
-//     console.log("Synced db with alter: true.");
-// });
+// db.sequelize.sync(); // Normal sync
+db.sequelize.sync({ alter: true }).then(() => {
+    console.log("Synced db with alter: true.");
+});
 
 // simple route
 app.get("/", (req, res) => {

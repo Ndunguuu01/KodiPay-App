@@ -86,18 +86,14 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('KodiPay Landlord'),
+        title: const Text('My Properties'),
         backgroundColor: AppConstants.primaryColor,
         foregroundColor: Colors.white,
       ),
       drawer: _buildDrawer(context),
       body: Consumer<PropertyProvider>(
         builder: (context, provider, child) {
-          // Loading handled by Shimmer in the list view
-          // if (provider.isLoading) {
-          //   return const Center(child: CircularProgressIndicator());
-          // }
-
+          // ... (existing builder code) ...
           if (provider.errorMessage != null) {
             return Center(child: Text('Error: ${provider.errorMessage}'));
           }
@@ -128,6 +124,9 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                     ),
                   
                   const SizedBox(height: 16),
+                  // Global Ads Section
+                  const PromoCarousel(),
+
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                     child: Row(
@@ -148,7 +147,6 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                       ],
                     ),
                   ),
-                  const PromoCarousel(),
                   
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -255,15 +253,32 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AddPropertyScreen()),
-            );
-          },
-          backgroundColor: AppConstants.primaryColor,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Add Property', style: TextStyle(color: Colors.white)),
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              heroTag: 'ai_fab',
+              onPressed: () {
+                // Navigate to AI Chat
+                // Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen()));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('KodiPay AI coming soon!')));
+              },
+              backgroundColor: AppConstants.secondaryColor,
+              child: const Icon(Icons.auto_awesome, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            FloatingActionButton.extended(
+              heroTag: 'add_property_fab',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AddPropertyScreen()),
+                );
+              },
+              backgroundColor: AppConstants.primaryColor,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('Add Property', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         ),
         bottomNavigationBar: _isAdLoaded
             ? SizedBox(

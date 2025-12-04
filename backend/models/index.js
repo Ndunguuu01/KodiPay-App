@@ -87,6 +87,8 @@ db.maintenance.belongsTo(db.users, { foreignKey: "tenant_id", as: "tenant" });
 // Message Associations
 db.users.hasMany(db.messages, { foreignKey: "sender_id", as: "sent_messages" });
 db.messages.belongsTo(db.users, { foreignKey: "sender_id", as: "sender" });
+db.users.hasMany(db.messages, { foreignKey: "receiver_id", as: "received_messages" });
+db.messages.belongsTo(db.users, { foreignKey: "receiver_id", as: "receiver" });
 
 db.ads = require("./ad.model.js")(sequelize, Sequelize);
 

@@ -89,73 +89,131 @@ class _TenantDashboardState extends State<TenantDashboard> {
               child: AdWidget(ad: _bannerAd!),
             )
           : null,
-      body: SingleChildScrollView(
-        child: AnimationLimiter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: AnimationConfiguration.toStaggeredList(
-              duration: const Duration(milliseconds: 375),
-              childAnimationBuilder: (widget) => SlideAnimation(
-                verticalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: widget,
-                ),
-              ),
-              children: [
-                _buildGreeting(),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'My Unit',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildUnitCard(),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: AnimationLimiter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: AnimationConfiguration.toStaggeredList(
+                  duration: const Duration(milliseconds: 375),
+                  childAnimationBuilder: (widget) => SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(
+                      child: widget,
+                    ),
+                  ),
+                  children: [
+                    _buildGreeting(),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Marketplace',
+                            'My Unit',
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                          TextButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const PostAdScreen()),
-                              );
-                            },
-                            icon: const Icon(Icons.add_circle_outline),
-                            label: const Text('Post Ad'),
+                          const SizedBox(height: 16),
+                          _buildUnitCard(),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Marketplace',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const PostAdScreen()),
+                                  );
+                                },
+                                icon: const Icon(Icons.add_circle_outline),
+                                label: const Text('Post Ad'),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 8),
+                          const PromoCarousel(),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Recent Messages',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildRecentMessages(),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Quick Actions',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildQuickActions(context),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      const PromoCarousel(),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Recent Messages',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildRecentMessages(),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Quick Actions',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildQuickActions(context),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          // T&C Overlay
+          Consumer<LeaseProvider>(
+            builder: (context, provider, child) {
+              final pendingLease = provider.leases.any((l) => l.status == 'pending');
+              if (!pendingLease) return const SizedBox.shrink();
+
+              return Container(
+                color: Colors.black87,
+                width: double.infinity,
+                height: double.infinity,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.description, size: 64, color: Colors.white),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Action Required',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'You have a new lease agreement waiting for your signature. Please review and accept the Terms & Conditions to access your dashboard.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const AgreementsScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppConstants.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Review & Sign', style: TextStyle(fontSize: 18, color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
