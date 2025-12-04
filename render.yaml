@@ -38,5 +38,5 @@ staticSites:
     publishDir: frontend/build/web
     routes:
       - type: rewrite
-        source: /*
+        source: "/*"
         destination: /index.html
