@@ -22,6 +22,8 @@ import 'post_ad_screen.dart';
 import '../widgets/promo_carousel.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/revenue_chart.dart';
+import '../widgets/occupancy_chart.dart';
 
 class LandlordDashboard extends StatefulWidget {
   const LandlordDashboard({super.key});
@@ -295,74 +297,69 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Charts Section
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: OccupancyChart(
+                    occupied: (_insights!['occupiedUnits'] as num).toInt(),
+                    total: (_insights!['totalUnits'] as num).toInt(),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: RevenueChart(insights: _insights!),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Secondary Stats
             Row(
               children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Occupancy',
-                  '${_insights!['occupancyRate']}%',
-                  Icons.pie_chart,
-                  Colors.blue,
-                  '${_insights!['occupiedUnits']}/${_insights!['totalUnits']} Units',
+                Expanded(
+                  child: _buildStatCard(
+                    'Maintenance',
+                    '${_insights!['pendingMaintenance']}',
+                    Icons.build,
+                    Colors.orange,
+                    'Pending Requests',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard(
-                  'Revenue',
-                  'KES ${_insights!['monthlyRevenue']}',
-                  Icons.attach_money,
-                  Colors.green,
-                  'Monthly Potential',
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    'Properties',
+                    '${_insights!['totalProperties']}',
+                    Icons.domain,
+                    Colors.purple,
+                    'Total Managed',
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Maintenance',
-                  '${_insights!['pendingMaintenance']}',
-                  Icons.build,
-                  Colors.orange,
-                  'Pending Requests',
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ReportService().generateMonthlyReport(_insights!);
+                },
+                icon: const Icon(Icons.picture_as_pdf),
+                label: const Text('Generate Monthly Report'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppConstants.secondaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard(
-                  'Properties',
-                  '${_insights!['totalProperties']}',
-                  Icons.domain,
-                  Colors.purple,
-                  'Total Managed',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                ReportService().generateMonthlyReport(_insights!);
-              },
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('Generate Monthly Report'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppConstants.secondaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
+    }
 
   Widget _buildRiskAlerts(List<dynamic> alerts) {
     return Padding(

@@ -126,16 +126,27 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             ),
                           ),
                         ),
-                        title: Text('Rent: KES ${unit.rentAmount}'),
-                        subtitle: Text(
-                          unit.status.toUpperCase(),
-                          style: TextStyle(
-                            color: unit.status == 'vacant'
-                                ? Colors.green
-                                : Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
+                        title: Text(
+                          unit.status == 'occupied' && unit.tenantName != null 
+                              ? unit.tenantName! 
+                              : 'Unit ${unit.unitNumber}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Rent: KES ${unit.rentAmount}'),
+                            Text(
+                              unit.status.toUpperCase(),
+                              style: TextStyle(
+                                color: unit.status == 'vacant'
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
