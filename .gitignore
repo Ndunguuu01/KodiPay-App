@@ -1,6 +1,6 @@
 node_modules/
 .env
-build/
+build/*
 !frontend/build/web/
 .dart_tool/
 *.zip
