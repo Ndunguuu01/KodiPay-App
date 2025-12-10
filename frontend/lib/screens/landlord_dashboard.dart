@@ -24,6 +24,7 @@ import '../widgets/shimmer_loading.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/revenue_chart.dart';
 import '../widgets/occupancy_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LandlordDashboard extends StatefulWidget {
   const LandlordDashboard({super.key});
@@ -143,17 +144,37 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                             style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              setState(() => _isLoadingInsights = true);
-                              _fetchInsights();
-                            },
-                            icon: const Icon(Icons.refresh, size: 16),
-                            label: const Text('Retry'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setState(() => _isLoadingInsights = true);
+                                  _fetchInsights();
+                                },
+                                icon: const Icon(Icons.refresh, size: 16),
+                                label: const Text('Retry'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.clear();
+                                  if (mounted) {
+                                    Navigator.of(context).pushReplacementNamed('/login');
+                                  }
+                                },
+                                icon: const Icon(Icons.login, size: 16, color: Colors.red),
+                                label: const Text('Login', style: TextStyle(color: Colors.red)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.red),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
