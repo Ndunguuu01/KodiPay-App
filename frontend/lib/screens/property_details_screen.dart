@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/unit_service.dart';
 import 'package:provider/provider.dart';
 import '../models/property.dart';
 import '../models/unit.dart';
@@ -34,6 +37,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         title: Text(widget.property.name),
         backgroundColor: AppConstants.primaryColor,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () => _showDebugInfo(context),
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,6 +206,43 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+
+  void _showDebugInfo(BuildContext context) async {
+    final unitService = UnitService();
+    try {
+      // Fetch raw data manually to inspect
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/properties/${widget.property.id}/units'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': token ?? '',
+        },
+      );
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Debug: Raw Unit Data'),
+          content: SingleChildScrollView(
+            child: Text(response.body),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Debug Error: $e')));
+    }
   }
 
   void _showAssignTenantDialog(BuildContext context, Unit unit) {
