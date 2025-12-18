@@ -56,7 +56,9 @@ exports.findAllByProperty = (req, res) => {
         });
 };
 
-exports.assignTenant = (req, res) => {
+const Lease = db.leases;
+
+exports.assignTenant = async (req, res) => {
     const id = req.params.id;
     const tenantId = req.body.tenant_id;
 
@@ -66,26 +68,43 @@ exports.assignTenant = (req, res) => {
         });
     }
 
-    Unit.update(
-        { tenant_id: tenantId, status: 'occupied' },
-        { where: { id: id } }
-    )
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "Tenant assigned successfully."
-                });
-            } else {
-                res.send({
-                    message: `Cannot update Unit with id=${id}. Maybe Unit was not found or req.body is empty!`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating Unit with id=" + id
-            });
+    try {
+        // 1. Get Unit to check rent amount
+        const unit = await Unit.findByPk(id);
+        if (!unit) {
+            return res.status(404).send({ message: "Unit not found." });
+        }
+
+        // 2. Update Unit
+        await Unit.update(
+            { tenant_id: tenantId, status: 'occupied' },
+            { where: { id: id } }
+        );
+
+        // 3. Create Lease
+        const startDate = new Date();
+        const nextDueDate = new Date();
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+        nextDueDate.setDate(5); // Default to 5th
+
+        await Lease.create({
+            unit_id: id,
+            tenant_id: tenantId,
+            rent_amount: unit.rent_amount,
+            status: 'active',
+            start_date: startDate,
+            next_due_date: nextDueDate
         });
+
+        res.send({
+            message: "Tenant assigned and lease created successfully."
+        });
+
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || "Error assigning tenant."
+        });
+    }
 };
 
 exports.update = (req, res) => {
