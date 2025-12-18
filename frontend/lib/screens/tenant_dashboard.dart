@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'profile_screen.dart';
 import '../providers/auth_provider.dart';
@@ -43,7 +44,9 @@ class _TenantDashboardState extends State<TenantDashboard> {
         NotificationService().init();
       }
     });
-    _loadAd();
+    if (!kIsWeb) {
+      _loadAd();
+    }
   }
 
   void _loadAd() {

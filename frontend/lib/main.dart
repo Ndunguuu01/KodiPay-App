@@ -24,11 +24,19 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
-  await AdService.init();
+  try {
+    await AdService.init();
+  } catch (e) {
+    print('AdService init failed: $e');
+  }
   
   // Initialize Notification Service
-  final notificationService = NotificationService();
-  await notificationService.init();
+  try {
+    final notificationService = NotificationService();
+    await notificationService.init();
+  } catch (e) {
+    print('NotificationService init failed: $e');
+  }
 
   runApp(const KodiPayApp());
 }
