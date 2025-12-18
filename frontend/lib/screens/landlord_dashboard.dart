@@ -410,20 +410,37 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
         child: Column(
           children: [
             // Charts Section
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: OccupancyChart(
-                    occupied: (_insights!['occupiedUnits'] as num).toInt(),
-                    total: (_insights!['totalUnits'] as num).toInt(),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: RevenueChart(insights: _insights!),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > 800) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: OccupancyChart(
+                          occupied: (_insights!['occupiedUnits'] as num).toInt(),
+                          total: (_insights!['totalUnits'] as num).toInt(),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: RevenueChart(insights: _insights!),
+                      ),
+                    ],
+                  );
+                } else {
+                  return Column(
+                    children: [
+                      OccupancyChart(
+                        occupied: (_insights!['occupiedUnits'] as num).toInt(),
+                        total: (_insights!['totalUnits'] as num).toInt(),
+                      ),
+                      const SizedBox(height: 16),
+                      RevenueChart(insights: _insights!),
+                    ],
+                  );
+                }
+              },
             ),
             const SizedBox(height: 16),
             
