@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../providers/auth_provider.dart';
@@ -46,20 +47,33 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
     Future.microtask(() {
       Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
       _fetchInsights();
-      NotificationService().init();
+      try {
+        NotificationService().init();
+      } catch (e) {
+        print('Notification init failed: $e');
+      }
     });
-    _loadAd();
+    
+    if (!kIsWeb) {
+      _loadAd();
+    }
   }
 
   void _loadAd() {
-    _bannerAd = AdService.createBannerAd()
-      ..load().then((_) {
-        if (mounted) {
-          setState(() {
-            _isAdLoaded = true;
-          });
-        }
-      });
+    try {
+      _bannerAd = AdService.createBannerAd()
+        ..load().then((_) {
+          if (mounted) {
+            setState(() {
+              _isAdLoaded = true;
+            });
+          }
+        }).catchError((e) {
+          print('Ad load failed: $e');
+        });
+    } catch (e) {
+      print('Ad creation failed: $e');
+    }
   }
 
   @override
