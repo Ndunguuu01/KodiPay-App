@@ -35,6 +35,7 @@ exports.create = (req, res) => {
 
 exports.findAllByProperty = (req, res) => {
     const propertyId = req.params.propertyId;
+    console.log(`Fetching units for property: ${propertyId}`);
 
     Unit.findAll({
         where: { property_id: propertyId },
@@ -46,9 +47,11 @@ exports.findAllByProperty = (req, res) => {
         }]
     })
         .then(data => {
+            console.log(`Found ${data.length} units for property ${propertyId}`);
             res.send(data);
         })
         .catch(err => {
+            console.error("Error fetching units:", err);
             res.status(500).send({
                 message:
                     err.message || "Some error occurred while retrieving units."
