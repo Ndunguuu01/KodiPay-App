@@ -22,6 +22,7 @@ class RevenueChart extends StatelessWidget {
     ];
 
     return Container(
+      height: 350,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,

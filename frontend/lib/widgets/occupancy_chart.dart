@@ -14,6 +14,7 @@ class OccupancyChart extends StatelessWidget {
     final occupiedPercentage = total > 0 ? (occupied / total * 100).toStringAsFixed(1) : '0';
 
     return Container(
+      height: 350,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
