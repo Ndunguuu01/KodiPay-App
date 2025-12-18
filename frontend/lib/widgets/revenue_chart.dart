@@ -9,27 +9,28 @@ class RevenueChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mock data for last 6 months - in real app, fetch from backend
-    final List<double> monthlyRevenue = [
-      (insights['monthlyRevenue'] as num).toDouble() * 0.8,
-      (insights['monthlyRevenue'] as num).toDouble() * 0.9,
-      (insights['monthlyRevenue'] as num).toDouble() * 0.85,
-      (insights['monthlyRevenue'] as num).toDouble() * 0.95,
-      (insights['monthlyRevenue'] as num).toDouble(), // Current
-      (insights['monthlyRevenue'] as num).toDouble() * 1.1, // Projected
+    final monthlyRevenue = (insights['monthlyRevenue'] as num).toDouble();
+    // Mock data for other months to make it look realistic for demo
+    // In production, this should come from historical data API
+    final List<double> revenueData = [
+      monthlyRevenue * 0.8,
+      monthlyRevenue * 0.9,
+      monthlyRevenue * 0.85,
+      monthlyRevenue * 1.1,
+      monthlyRevenue * 0.95,
+      monthlyRevenue,
     ];
 
     return Container(
-      height: 300,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
+            color: Colors.grey.withOpacity(0.08),
+            spreadRadius: 4,
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -39,21 +40,21 @@ class RevenueChart extends StatelessWidget {
         children: [
           const Text(
             'Revenue Trend',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
-          Expanded(
+          const SizedBox(height: 32),
+          AspectRatio(
+            aspectRatio: 1.5,
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: monthlyRevenue.reduce((a, b) => a > b ? a : b) * 1.2,
+                maxY: monthlyRevenue * 1.5,
                 barTouchData: BarTouchData(
-                  enabled: true,
                   touchTooltipData: BarTouchTooltipData(
-                    tooltipBgColor: Colors.blueGrey,
+                    tooltipBgColor: AppConstants.primaryColor,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       return BarTooltipItem(
-                        'KES ${rod.toY.round()}',
+                        'KES ${rod.toY.toInt()}',
                         const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       );
                     },
@@ -71,11 +72,15 @@ class RevenueChart extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
                               titles[value.toInt()],
-                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                              style: const TextStyle(
+                                color: Color(0xff7589a2),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
                             ),
                           );
                         }
-                        return const Text('');
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
@@ -83,17 +88,38 @@ class RevenueChart extends StatelessWidget {
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
-                gridData: const FlGridData(show: false),
+                gridData: FlGridData(
+                  show: true,
+                  checkToShowHorizontalLine: (value) => value % (monthlyRevenue / 2) == 0,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: const Color(0xffe7e8ec),
+                    strokeWidth: 1,
+                    dashArray: [5, 5],
+                  ),
+                  drawVerticalLine: false,
+                ),
                 borderData: FlBorderData(show: false),
-                barGroups: monthlyRevenue.asMap().entries.map((entry) {
+                barGroups: revenueData.asMap().entries.map((entry) {
                   return BarChartGroupData(
                     x: entry.key,
                     barRods: [
                       BarChartRodData(
                         toY: entry.value,
-                        color: entry.key == 4 ? AppConstants.primaryColor : Colors.grey[300],
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppConstants.primaryColor,
+                            Color(0xFF3949AB), // Lighter shade
+                          ],
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                        ),
                         width: 16,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: monthlyRevenue * 1.5,
+                          color: const Color(0xfff3f3f3),
+                        ),
                       ),
                     ],
                   );

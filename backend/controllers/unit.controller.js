@@ -41,7 +41,8 @@ exports.findAllByProperty = (req, res) => {
         include: [{
             model: db.users,
             as: "tenant",
-            attributes: ["id", "name", "email"]
+            attributes: ["id", "name", "email"],
+            required: false
         }]
     })
         .then(data => {
