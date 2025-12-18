@@ -39,12 +39,12 @@ exports.findAllByProperty = (req, res) => {
 
     Unit.findAll({
         where: { property_id: propertyId },
-        include: [{
-            model: db.users,
-            as: "tenant",
-            attributes: ["id", "name", "email"],
-            required: false
-        }]
+        // include: [{
+        //     model: db.users,
+        //     as: "tenant",
+        //     attributes: ["id", "name", "email"],
+        //     required: false
+        // }]
     })
         .then(data => {
             console.log(`Found ${data.length} units for property ${propertyId}`);
