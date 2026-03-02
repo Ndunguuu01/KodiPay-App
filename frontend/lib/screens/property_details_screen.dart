@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../models/property.dart';
 import '../models/unit.dart';
 import '../providers/unit_provider.dart';
-import '../services/user_service.dart';
 import '../utils/constants.dart';
 import 'add_unit_screen.dart';
 import 'assign_tenant_screen.dart';

@@ -1,7 +1,41 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
+
+# ── Secrets (NEVER commit these) ─────────────────────────────────────────────
 .env
-build/*
-!frontend/build/web/
+*.env
+!*.env.example
+
+# ── Build outputs (compiled artifacts — not for git) ─────────────────────────
+build/
+frontend/build/
+**/build/
+
+# ── Flutter ───────────────────────────────────────────────────────────────────
 .dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+pubspec.lock
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+*.suo
+*.user
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Large files ───────────────────────────────────────────────────────────────
 *.zip
 flutter_windows_*.zip
+
+# ── Database (local dev only — never commit) ─────────────────────────────────
+backend/database.sqlite
+backend/database.sqlite.bak
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+backend/logs/
+*.log

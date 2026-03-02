@@ -1,94 +1,90 @@
 const db = require("../models");
 const Unit = db.units;
 const Property = db.properties;
-
-exports.create = (req, res) => {
-    // Validate request
-    if (!req.body.unit_number || !req.body.rent_amount || !req.body.property_id) {
-        return res.status(400).send({
-            message: "Content can not be empty!"
-        });
-    }
-
-    // Create a Unit
-    const unit = {
-        unit_number: req.body.unit_number,
-        rent_amount: req.body.rent_amount,
-        status: req.body.status || "vacant",
-        property_id: req.body.property_id,
-        floor_number: req.body.floor_number,
-        room_number: req.body.room_number
-    };
-
-    // Save Unit in the database
-    Unit.create(unit)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the Unit."
-            });
-        });
-};
-
-exports.findAllByProperty = (req, res) => {
-    const propertyId = req.params.propertyId;
-    console.log(`Fetching units for property: ${propertyId}`);
-
-    Unit.findAll({
-        where: { property_id: propertyId },
-        // include: [{
-        //     model: db.users,
-        //     as: "tenant",
-        //     attributes: ["id", "name", "email"],
-        //     required: false
-        // }]
-    })
-        .then(data => {
-            console.log(`Found ${data.length} units for property ${propertyId}`);
-            res.send(data);
-        })
-        .catch(err => {
-            console.error("Error fetching units:", err);
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving units."
-            });
-        });
-};
-
 const Lease = db.leases;
+const logger = require('../middleware/logger');
 
-exports.assignTenant = async (req, res) => {
-    const id = req.params.id;
-    const tenantId = req.body.tenant_id;
+// Whitelisted fields for unit creation
+const ALLOWED_CREATE_FIELDS = ['unit_number', 'rent_amount', 'property_id', 'floor_number', 'room_number', 'status'];
+// Whitelisted fields for unit update — tenant_id is NEVER accepted directly via API
+const ALLOWED_UPDATE_FIELDS = ['unit_number', 'rent_amount', 'floor_number', 'room_number', 'status'];
 
-    if (!tenantId) {
-        return res.status(400).send({
-            message: "Tenant ID is required!"
-        });
-    }
-
+exports.create = async (req, res, next) => {
     try {
-        // 1. Get Unit to check rent amount
-        const unit = await Unit.findByPk(id);
-        if (!unit) {
-            return res.status(404).send({ message: "Unit not found." });
+        if (!req.body.unit_number || !req.body.rent_amount || !req.body.property_id) {
+            return res.status(400).json({ message: 'unit_number, rent_amount, and property_id are required.' });
         }
 
-        // 2. Update Unit
+        // Verify landlord owns this property
+        const property = await Property.findOne({
+            where: { id: req.body.property_id, landlord_id: req.userId }
+        });
+        if (!property) {
+            return res.status(403).json({ message: 'Access denied: property not found or not owned by you.' });
+        }
+
+        // Only pick allowed fields — prevent mass assignment
+        const unitData = {};
+        ALLOWED_CREATE_FIELDS.forEach(field => {
+            if (req.body[field] !== undefined) unitData[field] = req.body[field];
+        });
+        unitData.status = unitData.status || 'vacant';
+
+        const unit = await Unit.create(unitData);
+        res.status(201).json(unit);
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.findAllByProperty = async (req, res, next) => {
+    try {
+        const propertyId = req.params.propertyId;
+
+        const units = await Unit.findAll({
+            where: { property_id: propertyId },
+            order: [['unit_number', 'ASC']]
+        });
+
+        res.json(units);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ASSIGN TENANT — FIX: checks unit not already occupied
+// ─────────────────────────────────────────────────────────────────────────────
+exports.assignTenant = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const tenantId = req.body.tenant_id;
+
+        if (!tenantId) {
+            return res.status(400).json({ message: 'Tenant ID is required.' });
+        }
+
+        const unit = await Unit.findByPk(id);
+        if (!unit) {
+            return res.status(404).json({ message: 'Unit not found.' });
+        }
+
+        // FIX: Prevent assigning to already-occupied unit
+        if (unit.status === 'occupied' || unit.tenant_id) {
+            return res.status(409).json({
+                message: `Unit ${unit.unit_number} is already occupied. Terminate the existing lease before reassigning.`
+            });
+        }
+
         await Unit.update(
             { tenant_id: tenantId, status: 'occupied' },
-            { where: { id: id } }
+            { where: { id } }
         );
 
-        // 3. Create Lease
         const startDate = new Date();
         const nextDueDate = new Date();
         nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-        nextDueDate.setDate(5); // Default to 5th
+        nextDueDate.setDate(5);
 
         await Lease.create({
             unit_id: id,
@@ -99,61 +95,63 @@ exports.assignTenant = async (req, res) => {
             next_due_date: nextDueDate
         });
 
-        res.send({
-            message: "Tenant assigned and lease created successfully."
-        });
-
+        logger.info(`Tenant ${tenantId} assigned to unit ${id} by landlord ${req.userId}`);
+        res.json({ message: 'Tenant assigned and lease created successfully.' });
     } catch (err) {
-        res.status(500).send({
-            message: err.message || "Error assigning tenant."
-        });
+        next(err);
     }
 };
 
-exports.update = (req, res) => {
-    const id = req.params.id;
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE UNIT — FIX: whitelisted fields only, no mass assignment
+// ─────────────────────────────────────────────────────────────────────────────
+exports.update = async (req, res, next) => {
+    try {
+        const id = req.params.id;
 
-    Unit.update(req.body, {
-        where: { id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "Unit was updated successfully."
-                });
-            } else {
-                res.send({
-                    message: `Cannot update Unit with id=${id}. Maybe Unit was not found or req.body is empty!`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating Unit with id=" + id
-            });
+        // Only pick whitelisted fields — tenant_id and property_id cannot be changed via update
+        const updateData = {};
+        ALLOWED_UPDATE_FIELDS.forEach(field => {
+            if (req.body[field] !== undefined) updateData[field] = req.body[field];
         });
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'No valid fields provided for update.' });
+        }
+
+        const [num] = await Unit.update(updateData, { where: { id } });
+
+        if (num === 1) {
+            res.json({ message: 'Unit updated successfully.' });
+        } else {
+            res.status(404).json({ message: `Unit with id=${id} not found.` });
+        }
+    } catch (err) {
+        next(err);
+    }
 };
 
-exports.delete = (req, res) => {
-    const id = req.params.id;
+exports.delete = async (req, res, next) => {
+    try {
+        const id = req.params.id;
 
-    Unit.destroy({
-        where: { id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "Unit was deleted successfully!"
-                });
-            } else {
-                res.send({
-                    message: `Cannot delete Unit with id=${id}. Maybe Unit was not found!`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Could not delete Unit with id=" + id
-            });
+        // Prevent deletion if unit has active leases
+        const activeLease = await Lease.findOne({
+            where: { unit_id: id, status: 'active' }
         });
+        if (activeLease) {
+            return res.status(409).json({
+                message: 'Cannot delete unit with an active lease. Terminate the lease first.'
+            });
+        }
+
+        const num = await Unit.destroy({ where: { id } });
+        if (num === 1) {
+            res.json({ message: 'Unit deleted successfully.' });
+        } else {
+            res.status(404).json({ message: `Unit with id=${id} not found.` });
+        }
+    } catch (err) {
+        next(err);
+    }
 };

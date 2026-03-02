@@ -3,92 +3,91 @@ const Maintenance = db.maintenance;
 const User = db.users;
 const Unit = db.units;
 const Op = db.Sequelize.Op;
+const logger = require('../middleware/logger');
 
-// Create a new Maintenance Request
-exports.create = (req, res) => {
-    if (!req.body.unit_id || !req.body.tenant_id || !req.body.issue_type || !req.body.description) {
-        res.status(400).send({
-            message: "Content can not be empty!"
-        });
-        return;
-    }
+// Whitelisted fields for maintenance status update (landlord)
+const ALLOWED_UPDATE_FIELDS = ['status', 'notes'];
 
-    const maintenance = {
-        unit_id: req.body.unit_id,
-        tenant_id: req.body.tenant_id,
-        issue_type: req.body.issue_type,
-        description: req.body.description,
-        priority: req.body.priority || 'medium',
-        status: 'pending'
-    };
-
-    Maintenance.create(maintenance)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while creating the Maintenance Request."
-            });
-        });
-};
-
-// Retrieve all Maintenance Requests (for Landlord) or for specific Tenant
-exports.findAll = (req, res) => {
-    const tenant_id = req.query.tenant_id;
-    const unit_id = req.query.unit_id;
-
-    let condition = {};
-    if (tenant_id) condition.tenant_id = tenant_id;
-    if (unit_id) condition.unit_id = unit_id;
-
-    Maintenance.findAll({
-        where: condition,
-        include: [
-            { model: User, as: 'tenant', attributes: ['name', 'phone'] },
-            { model: Unit, as: 'unit', attributes: ['unit_number'] }
-        ],
-        order: [['createdAt', 'DESC']]
-    })
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving maintenance requests."
-            });
-        });
-};
-
-exports.findAllByLandlord = async (req, res) => {
-    const landlordId = req.params.userId;
-
+exports.create = async (req, res, next) => {
     try {
-        // Find all properties owned by landlord
+        const { unit_id, tenant_id, issue_type, description, priority } = req.body; // Joi validated
+
+        // Tenants can only submit requests for their own unit
+        if (req.userRole === 'tenant') {
+            const unit = await Unit.findOne({
+                where: { id: unit_id, tenant_id: req.userId }
+            });
+            if (!unit) {
+                return res.status(403).json({
+                    message: 'Access denied: you are not assigned to this unit.'
+                });
+            }
+        }
+
+        const maintenance = await Maintenance.create({
+            unit_id,
+            tenant_id,
+            issue_type,
+            description,
+            priority: priority || 'medium',
+            status: 'pending'
+        });
+
+        res.status(201).json(maintenance);
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.findAll = async (req, res, next) => {
+    try {
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, parseInt(req.query.limit) || 20);
+        const offset = (page - 1) * limit;
+
+        let condition = {};
+        if (req.userRole === 'tenant') {
+            condition.tenant_id = req.userId; // Tenants only see their own
+        } else {
+            if (req.query.tenant_id) condition.tenant_id = parseInt(req.query.tenant_id);
+            if (req.query.unit_id) condition.unit_id = parseInt(req.query.unit_id);
+        }
+
+        const { count, rows } = await Maintenance.findAndCountAll({
+            where: condition,
+            include: [
+                { model: User, as: 'tenant', attributes: ['name', 'phone'] },
+                { model: Unit, as: 'unit', attributes: ['unit_number'] }
+            ],
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset
+        });
+
+        res.json({ total: count, page, limit, data: rows });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.findAllByLandlord = async (req, res, next) => {
+    try {
+        const landlordId = parseInt(req.params.userId, 10);
+
         const properties = await db.properties.findAll({
             where: { landlord_id: landlordId },
             attributes: ['id']
         });
-
         const propertyIds = properties.map(p => p.id);
+        if (propertyIds.length === 0) return res.json([]);
 
-        if (propertyIds.length === 0) {
-            return res.send([]);
-        }
-
-        // Find all units in these properties
         const units = await Unit.findAll({
             where: { property_id: { [Op.in]: propertyIds } },
             attributes: ['id']
         });
-
         const unitIds = units.map(u => u.id);
+        if (unitIds.length === 0) return res.json([]);
 
-        if (unitIds.length === 0) {
-            return res.send([]);
-        }
-
-        // Find all maintenance requests for these units
         const requests = await Maintenance.findAll({
             where: { unit_id: { [Op.in]: unitIds } },
             include: [
@@ -98,41 +97,40 @@ exports.findAllByLandlord = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        res.send(requests);
+        res.json(requests);
     } catch (err) {
-        res.status(500).send({
-            message: err.message || "Some error occurred while retrieving maintenance requests."
-        });
+        next(err);
     }
 };
 
-// Update Maintenance Status (for Landlord)
-exports.update = (req, res) => {
-    const id = req.params.id;
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE — FIX: only whitelisted fields allowed (no mass assignment)
+// ─────────────────────────────────────────────────────────────────────────────
+exports.update = async (req, res, next) => {
+    try {
+        const id = req.params.id;
 
-    Maintenance.update(req.body, {
-        where: { id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                // Emit socket event
-                Maintenance.findByPk(id).then(data => {
-                    const io = req.app.get('socketio');
-                    io.to(`user_${data.tenant_id}`).emit('maintenance_update', data);
-                });
-
-                res.send({
-                    message: "Maintenance Request was updated successfully."
-                });
-            } else {
-                res.send({
-                    message: `Cannot update Maintenance Request with id=${id}. Maybe Request was not found or req.body is empty!`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating Maintenance Request with id=" + id
-            });
+        // Whitelist: landlords can only update status and notes
+        const updateData = {};
+        ALLOWED_UPDATE_FIELDS.forEach(field => {
+            if (req.body[field] !== undefined) updateData[field] = req.body[field];
         });
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'No valid fields to update. Only status and notes are allowed.' });
+        }
+
+        const [num] = await Maintenance.update(updateData, { where: { id } });
+
+        if (num === 1) {
+            const data = await Maintenance.findByPk(id);
+            const io = req.app.get('socketio');
+            io.to(`user_${data.tenant_id}`).emit('maintenance_update', data);
+            res.json({ message: 'Maintenance request updated.' });
+        } else {
+            res.status(404).json({ message: `Maintenance request with id=${id} not found.` });
+        }
+    } catch (err) {
+        next(err);
+    }
 };

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
 
 class ChatBubble extends StatelessWidget {
   final String content;

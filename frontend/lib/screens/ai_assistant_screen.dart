@@ -59,7 +59,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
     final contextData = {
       'userName': authProvider.userName,
-      'rentAmount': activeLease?.rentAmount ?? 0.0,
+      'rentAmount': activeLease.rentAmount ?? 0.0,
       'bills': billProvider.bills,
     };
 

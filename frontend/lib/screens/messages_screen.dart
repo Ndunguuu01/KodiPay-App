@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/message_provider.dart';
 import '../utils/constants.dart';
 import 'compose_message_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/empty_state.dart';
 import 'chat_screen.dart';

@@ -44,8 +44,7 @@ class RevenueChart extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 32),
-          AspectRatio(
-            aspectRatio: 1.5,
+          Expanded(
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
@@ -56,7 +55,8 @@ class RevenueChart extends StatelessWidget {
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       return BarTooltipItem(
                         'KES ${rod.toY.toInt()}',
-                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
                       );
                     },
                   ),
@@ -67,7 +67,14 @@ class RevenueChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const titles = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const titles = [
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Oct',
+                          'Nov',
+                          'Dec'
+                        ];
                         if (value.toInt() < titles.length) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8.0),
@@ -85,13 +92,17 @@ class RevenueChart extends StatelessWidget {
                       },
                     ),
                   ),
-                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                 ),
                 gridData: FlGridData(
                   show: true,
-                  checkToShowHorizontalLine: (value) => value % (monthlyRevenue / 2) == 0,
+                  checkToShowHorizontalLine: (value) =>
+                      value % (monthlyRevenue / 2) == 0,
                   getDrawingHorizontalLine: (value) => FlLine(
                     color: const Color(0xffe7e8ec),
                     strokeWidth: 1,
@@ -115,7 +126,8 @@ class RevenueChart extends StatelessWidget {
                           end: Alignment.topCenter,
                         ),
                         width: 16,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(8)),
                         backDrawRodData: BackgroundBarChartRodData(
                           show: true,
                           toY: monthlyRevenue * 1.5,

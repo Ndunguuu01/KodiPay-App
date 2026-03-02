@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
+import '../utils/secure_storage.dart';
 
+/// AuthService using FlutterSecureStorage (AES-256) instead of SharedPreferences.
+/// Tokens and session data are stored in the OS keychain, NOT plain SharedPreferences.
 class AuthService {
+  // ── LOGIN ──────────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -15,21 +18,25 @@ class AuthService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Save token
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', data['accessToken']);
-        await prefs.setInt('userId', data['id']); // Store as int
-        await prefs.setString('userRole', data['role']);
-        await prefs.setString('userName', data['name']);
+        await SecureStorage.saveSession(
+          token: data['accessToken'],
+          userId: data['id'],
+          role: data['role'],
+          name: data['name'],
+        );
         return {'success': true, 'data': data};
       } else {
         return {'success': false, 'message': data['message'] ?? 'Login failed'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
     }
   }
 
+  // ── GOOGLE SSO ─────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> googleLogin(String idToken) async {
     try {
       final response = await http.post(
@@ -41,22 +48,35 @@ class AuthService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Save token
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', data['accessToken']);
-        await prefs.setInt('userId', data['id']);
-        await prefs.setString('userRole', data['role']);
-        await prefs.setString('userName', data['name']);
+        await SecureStorage.saveSession(
+          token: data['accessToken'],
+          userId: data['id'],
+          role: data['role'],
+          name: data['name'],
+        );
         return {'success': true, 'data': data};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Google Login failed'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Google login failed'
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
     }
   }
 
-  Future<Map<String, dynamic>> register(String name, String email, String password, String phone, String role) async {
+  // ── REGISTER ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> register(
+    String name,
+    String email,
+    String password,
+    String phone,
+    String role,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}/auth/register'),
@@ -72,53 +92,115 @@ class AuthService {
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
-        return {'success': true, 'message': data['message']};
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': 'Registration successful. Please log in.'
+        };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Registration failed'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Registration failed'
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
     }
   }
 
-  Future<Map<String, dynamic>> updateProfile(String name, String phone, String? profilePic) async {
+  // ── FORGOT PASSWORD ────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken');
+      await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
 
+      // Always 200 (anti-enumeration) — safe to show generic message
+      return {
+        'success': true,
+        'message': 'If that email is registered, a reset link has been sent.'
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
+    }
+  }
+
+  // ── RESET PASSWORD ─────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> resetPassword(
+      String token, String newPassword) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'token': token, 'newPassword': newPassword}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      } else {
+        return {'success': false, 'message': data['message'] ?? 'Reset failed'};
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
+    }
+  }
+
+  // ── PROFILE OPS ────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> updateProfile(
+    String name,
+    String phone,
+    String? profilePic,
+  ) async {
+    try {
+      final token = await SecureStorage.getToken();
       final response = await http.put(
         Uri.parse('${AppConstants.baseUrl}/users/profile'),
         headers: {
           'Content-Type': 'application/json',
           'x-access-token': token ?? '',
         },
-        body: jsonEncode({
-          'name': name,
-          'phone': phone,
-          'profile_pic': profilePic,
-        }),
+        body: jsonEncode(
+            {'name': name, 'phone': phone, 'profile_pic': profilePic}),
       );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Update local storage
-        await prefs.setString('userName', name);
+        await SecureStorage.saveUserName(name);
         return {'success': true, 'message': data['message']};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Profile update failed'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Update failed'
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
     }
   }
 
-  Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword) async {
+  Future<Map<String, dynamic>> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken');
-
+      final token = await SecureStorage.getToken();
       final response = await http.put(
         Uri.parse('${AppConstants.baseUrl}/users/password'),
         headers: {
@@ -136,20 +218,21 @@ class AuthService {
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Password change failed'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Password change failed'
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+      return {
+        'success': false,
+        'message': 'Connection error. Please try again.'
+      };
     }
   }
 
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('accessToken');
-  }
+  // ── SESSION ────────────────────────────────────────────────────────────────
+  Future<String?> getToken() => SecureStorage.getToken();
 
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
+  Future<void> logout() => SecureStorage.clearSession();
 }

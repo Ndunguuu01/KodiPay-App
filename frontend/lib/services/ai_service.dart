@@ -1,55 +1,53 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../utils/constants.dart';
+import '../utils/secure_storage.dart';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+/// AIService — calls the backend proxy endpoint instead of the Gemini SDK directly.
+/// The Gemini API key NEVER leaves the backend server.
+/// This file contains NO API keys.
 class AIService {
-  // TODO: Move this to a secure environment variable in production
-  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
-  late final GenerativeModel _model;
-
-  AIService() {
-    _model = GenerativeModel(
-      model: 'gemini-pro-latest',
-      apiKey: _apiKey,
-    );
-  }
-
-  Future<String> sendMessage(String message, Map<String, dynamic> context) async {
+  Future<String> sendMessage(
+    String message,
+    Map<String, dynamic> context,
+  ) async {
     try {
-      // Construct a prompt that includes the context
-      final prompt = _buildPrompt(message, context);
-      final content = [Content.text(prompt)];
-      
-      final response = await _model.generateContent(content);
-      
-      return response.text ?? "I'm sorry, I couldn't generate a response.";
+      final token = await SecureStorage.getToken();
+      if (token == null) {
+        return 'Please log in to use the AI assistant.';
+      }
+
+      final response = await http
+          .post(
+            Uri.parse('${AppConstants.baseUrl}/ai/chat'),
+            headers: {
+              'Content-Type': 'application/json',
+              'x-access-token': token,
+            },
+            body: jsonEncode({
+              'message': message,
+              'context': {
+                'userName': context['userName'],
+                'rentAmount': context['rentAmount'],
+                'bills': context['bills'] ?? [],
+              },
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'] ?? "I'm sorry, I couldn't generate a response.";
+      } else if (response.statusCode == 401) {
+        return 'Session expired. Please log in again.';
+      } else if (response.statusCode == 429) {
+        return 'Too many requests. Please wait a moment and try again.';
+      } else {
+        return "I'm having trouble connecting. Please try again later.";
+      }
     } catch (e) {
-      print('Error generating content: $e');
-      return "Error: $e"; // Temporary: Show actual error to user
+      // Never expose raw error to the user
+      return "I'm temporarily unavailable. Please try again in a moment.";
     }
-  }
-
-  String _buildPrompt(String userMessage, Map<String, dynamic> context) {
-    final userName = context['userName'] ?? 'User';
-    final rentAmount = context['rentAmount'];
-    final bills = context['bills'] as List<dynamic>? ?? [];
-    
-    final billSummary = bills.map((b) => 
-      "- ${b.type}: KES ${b.amount} (${b.status})"
-    ).join('\n');
-
-    return '''
-You are a helpful assistant for the KodiPay app, a real estate management platform.
-You are talking to a tenant named $userName.
-
-Context:
-- Rent Amount: KES $rentAmount
-- Bills:
-$billSummary
-
-User Message: "$userMessage"
-
-Respond to the user in a friendly and helpful manner. Use the context provided to answer questions about their rent or bills if asked. Keep the response concise (under 3 sentences if possible).
-''';
   }
 }

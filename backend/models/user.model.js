@@ -12,7 +12,8 @@ module.exports = (sequelize, Sequelize) => {
         email: {
             type: Sequelize.STRING,
             allowNull: false,
-            unique: true
+            unique: true,
+            validate: { isEmail: true }
         },
         password_hash: {
             type: Sequelize.STRING,
@@ -23,10 +24,28 @@ module.exports = (sequelize, Sequelize) => {
             defaultValue: 'tenant'
         },
         phone: {
-            type: Sequelize.STRING
+            type: Sequelize.STRING,
+            allowNull: true
         },
         profile_pic: {
-            type: Sequelize.TEXT('long')
+            type: Sequelize.TEXT('long'),
+            allowNull: true
+        },
+        // Password reset fields
+        password_reset_token: {
+            type: Sequelize.STRING,
+            allowNull: true,
+            defaultValue: null
+        },
+        password_reset_expires: {
+            type: Sequelize.DATE,
+            allowNull: true,
+            defaultValue: null
+        },
+        // Flags invited accounts that must change password on first login
+        must_reset_password: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
         }
     });
 

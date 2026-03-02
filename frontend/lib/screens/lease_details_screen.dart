@@ -31,15 +31,14 @@ class LeaseDetailsScreen extends StatelessWidget {
               title: 'Unit Information',
               children: [
                 _buildDetailRow('Unit Number', lease.unit?.unitNumber ?? 'Unknown'),
-                _buildDetailRow('Property', lease.unit?.propertyName ?? 'Unknown'), // Assuming Unit has propertyName
-              ],
+                _buildDetailRow('Property', lease.unit?.propertyId?.toString() ?? 'Unknown'),
             ),
             const SizedBox(height: 16),
             _buildDetailCard(
               title: 'Lease Terms',
               children: [
-                _buildDetailRow('Start Date', lease.startDate),
-                _buildDetailRow('End Date', lease.endDate),
+                _buildDetailRow('Start Date', lease.startDate ?? 'Unknown'),
+                _buildDetailRow('End Date', lease.endDate ?? 'Unknown'),
                 _buildDetailRow('Rent Amount', 'KES ${lease.rentAmount.toStringAsFixed(2)}'),
                 _buildDetailRow('Status', lease.status.toUpperCase(), 
                   valueColor: _getStatusColor(lease.status)),

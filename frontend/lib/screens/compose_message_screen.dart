@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -133,37 +132,35 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
           orElse: () => leaseProvider.leases.isNotEmpty ? leaseProvider.leases.first : null as dynamic,
         );
 
-        if (activeLease != null) {
-          // We need to fetch the unit to get the property ID
-          // Since lease has unit details included (based on backend controller), we might access it directly
-          // But the Lease model in frontend might need checking.
-          // Assuming we can get propertyId from the unit in the lease.
-          // If not, we might need a better way.
-          // Let's assume for now we can get it or we need to fetch unit details.
-          // Actually, the backend `findAllByTenant` includes `unit`.
-          // Let's check the Lease model.
-          
-          // Workaround: If Lease model doesn't have propertyId, we might need to fetch it.
-          // But wait, the backend `findAllByTenant` includes `unit`. Does `unit` include `property_id`?
-          // Yes, Unit model usually has property_id.
-          
-          if (activeLease.unit != null) {
-             final propertyId = activeLease.unit!.propertyId;
-             if (propertyId != null) {
-               // Fetch property details to get landlord ID
-               final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-               final property = await propertyProvider.fetchPropertyById(propertyId);
-               
-               if (mounted) {
-                 setState(() {
-                   _selectedPropertyId = propertyId;
-                   _landlordId = property?.landlordId;
-                 });
-               }
+        // We need to fetch the unit to get the property ID
+        // Since lease has unit details included (based on backend controller), we might access it directly
+        // But the Lease model in frontend might need checking.
+        // Assuming we can get propertyId from the unit in the lease.
+        // If not, we might need a better way.
+        // Let's assume for now we can get it or we need to fetch unit details.
+        // Actually, the backend `findAllByTenant` includes `unit`.
+        // Let's check the Lease model.
+        
+        // Workaround: If Lease model doesn't have propertyId, we might need to fetch it.
+        // But wait, the backend `findAllByTenant` includes `unit`. Does `unit` include `property_id`?
+        // Yes, Unit model usually has property_id.
+        
+        if (activeLease.unit != null) {
+           final propertyId = activeLease.unit!.propertyId;
+           if (propertyId != null) {
+             // Fetch property details to get landlord ID
+             final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+             final property = await propertyProvider.fetchPropertyById(propertyId);
+             
+             if (mounted) {
+               setState(() {
+                 _selectedPropertyId = propertyId;
+                 _landlordId = property?.landlordId;
+               });
              }
-          }
+           }
         }
-      }
+            }
     } else {
       // Landlord
       Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
