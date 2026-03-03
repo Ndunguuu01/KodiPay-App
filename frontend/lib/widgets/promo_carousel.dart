@@ -25,9 +25,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
   void initState() {
     super.initState();
     _startAutoSlide();
-    Future.microtask(() => 
-      Provider.of<MarketplaceProvider>(context, listen: false).fetchAds()
-    );
+    Future.microtask(() =>
+        Provider.of<MarketplaceProvider>(context, listen: false).fetchAds());
   }
 
   @override
@@ -45,9 +44,12 @@ class _PromoCarouselState extends State<PromoCarousel> {
 
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
-      final allAds = Provider.of<MarketplaceProvider>(context, listen: false).ads;
-      final ads = allAds.where((ad) => ad.imageUrl != null && ad.imageUrl!.isNotEmpty).toList();
-      
+      final allAds =
+          Provider.of<MarketplaceProvider>(context, listen: false).ads;
+      final ads = allAds
+          .where((ad) => ad.imageUrl != null && ad.imageUrl!.isNotEmpty)
+          .toList();
+
       if (ads.isEmpty) return;
 
       _currentPage++;
@@ -62,7 +64,6 @@ class _PromoCarouselState extends State<PromoCarousel> {
     });
   }
 
-
   Widget _buildMediaContent(MarketplaceAd ad, int index) {
     if (ad.type == 'video' && ad.imageUrl != null) {
       // For base64 video, we need to write to a temp file first
@@ -70,7 +71,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
       // Real implementation would require caching.
       // Let's stick to image placeholder for video or icon for now to avoid freezing UI
       return Center(
-        child: Icon(Icons.play_circle_fill, size: 50, color: Colors.white.withOpacity(0.8)),
+        child: Icon(Icons.play_circle_fill,
+            size: 50, color: Colors.white.withOpacity(0.8)),
       );
     } else if (ad.imageUrl != null) {
       return Container(
@@ -103,12 +105,16 @@ class _PromoCarouselState extends State<PromoCarousel> {
     return Consumer<MarketplaceProvider>(
       builder: (context, provider, child) {
         // Filter out ads without images
-        final ads = provider.ads.where((ad) => ad.imageUrl != null && ad.imageUrl!.isNotEmpty).toList();
+        final ads = provider.ads
+            .where((ad) => ad.imageUrl != null && ad.imageUrl!.isNotEmpty)
+            .toList();
 
         if (provider.isLoading) {
           return SizedBox(
             height: 180,
-            child: Center(child: CircularProgressIndicator(color: AppConstants.primaryColor)),
+            child: Center(
+                child: CircularProgressIndicator(
+                    color: AppConstants.primaryColor)),
           );
         }
 
@@ -119,9 +125,11 @@ class _PromoCarouselState extends State<PromoCarousel> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shopping_bag_outlined, size: 40, color: Colors.grey),
+                  Icon(Icons.shopping_bag_outlined,
+                      size: 40, color: Colors.grey),
                   SizedBox(height: 8),
-                  Text('No ads yet. Be the first to post!', style: TextStyle(color: Colors.grey)),
+                  Text('No ads yet. Be the first to post!',
+                      style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -130,7 +138,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
 
         return Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800), // Constrain width on web
+            constraints:
+                const BoxConstraints(maxWidth: 800), // Constrain width on web
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: PageView.builder(
@@ -145,20 +154,25 @@ class _PromoCarouselState extends State<PromoCarousel> {
                   // Use modulo to loop through ads
                   final adIndex = index % ads.length;
                   final ad = ads[adIndex];
-                  
+
                   return GestureDetector(
                     onLongPress: () {
-                      final currentUserId = Provider.of<AuthProvider>(context, listen: false).userId;
+                      final currentUserId =
+                          Provider.of<AuthProvider>(context, listen: false)
+                              .userId;
                       if (currentUserId != null && currentUserId == ad.userId) {
                         _showDeleteDialog(context, ad);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('You can only delete your own ads')),
+                          const SnackBar(
+                              content:
+                                  Text('You can only delete your own ads')),
                         );
                       }
                     },
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8), // Adjusted margin
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 8), // Adjusted margin
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -204,7 +218,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
                                   if (ad.contactInfo != null) ...[
                                     const SizedBox(height: 12),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(20),
@@ -212,7 +227,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.phone, color: Colors.white, size: 16),
+                                          const Icon(Icons.phone,
+                                              color: Colors.white, size: 16),
                                           const SizedBox(width: 4),
                                           Text(
                                             ad.contactInfo!,
@@ -257,10 +273,14 @@ class _PromoCarouselState extends State<PromoCarousel> {
             onPressed: () async {
               Navigator.of(ctx).pop();
               if (ad.id != null) {
-                final success = await Provider.of<MarketplaceProvider>(context, listen: false).deleteAd(ad.id!);
-                if (mounted) {
+                final success = await Provider.of<MarketplaceProvider>(context,
+                        listen: false)
+                    .deleteAd(ad.id!);
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(success ? 'Ad deleted' : 'Failed to delete ad')),
+                    SnackBar(
+                        content: Text(
+                            success ? 'Ad deleted' : 'Failed to delete ad')),
                   );
                 }
               }

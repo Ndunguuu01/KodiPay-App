@@ -50,10 +50,10 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
       try {
         NotificationService().init();
       } catch (e) {
-        print('Notification init failed: $e');
+        debugPrint('Notification init failed: $e');
       }
     });
-    
+
     if (!kIsWeb) {
       _loadAd();
     }
@@ -69,10 +69,10 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
             });
           }
         }).catchError((e) {
-          print('Ad load failed: $e');
+          debugPrint('Ad load failed: $e');
         });
     } catch (e) {
-      print('Ad creation failed: $e');
+      debugPrint('Ad creation failed: $e');
     }
   }
 
@@ -124,11 +124,15 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    const Icon(Icons.error_outline,
+                        color: Colors.red, size: 48),
                     const SizedBox(height: 16),
                     Text(
                       'Error loading properties',
-                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 18),
+                      style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -145,11 +149,14 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                           Navigator.of(context).pushReplacementNamed('/login');
                         }
                       },
-                      icon: const Icon(Icons.login, size: 16, color: Colors.red),
-                      label: const Text('Login Again', style: TextStyle(color: Colors.red)),
+                      icon:
+                          const Icon(Icons.login, size: 16, color: Colors.red),
+                      label: const Text('Login Again',
+                          style: TextStyle(color: Colors.red)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
                     ),
                   ],
@@ -178,7 +185,8 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                     Column(
                       children: [
                         _buildStatsGrid(),
-                        if (_insights!['fraudAlerts'] != null && (_insights!['fraudAlerts'] as List).isNotEmpty)
+                        if (_insights!['fraudAlerts'] != null &&
+                            (_insights!['fraudAlerts'] as List).isNotEmpty)
                           _buildRiskAlerts(_insights!['fraudAlerts']),
                       ],
                     )
@@ -194,11 +202,13 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                          const Icon(Icons.error_outline,
+                              color: Colors.red, size: 48),
                           const SizedBox(height: 16),
                           const Text(
                             'Could not load insights',
-                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -219,14 +229,18 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                               const SizedBox(width: 16),
                               OutlinedButton.icon(
                                 onPressed: () async {
-                                  final prefs = await SharedPreferences.getInstance();
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
                                   await prefs.clear();
                                   if (mounted) {
-                                    Navigator.of(context).pushReplacementNamed('/login');
+                                    Navigator.of(context)
+                                        .pushReplacementNamed('/login');
                                   }
                                 },
-                                icon: const Icon(Icons.login, size: 16, color: Colors.red),
-                                label: const Text('Login', style: TextStyle(color: Colors.red)),
+                                icon: const Icon(Icons.login,
+                                    size: 16, color: Colors.red),
+                                label: const Text('Login',
+                                    style: TextStyle(color: Colors.red)),
                                 style: OutlinedButton.styleFrom(
                                   side: const BorderSide(color: Colors.red),
                                 ),
@@ -236,7 +250,7 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                         ],
                       ),
                     ),
-                  
+
                   const SizedBox(height: 16),
                   // Global Ads Section
                   const PromoCarousel(),
@@ -248,12 +262,14 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                       children: [
                         const Text(
                           'Marketplace',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const PostAdScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const PostAdScreen()),
                             );
                           },
                           child: const Text('Post Ad'),
@@ -261,7 +277,7 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                       ],
                     ),
                   ),
-                  
+
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                     child: Row(
@@ -269,14 +285,16 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                       children: [
                         const Text(
                           'Your Properties',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         TextButton(
                           onPressed: () {
-                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const AddPropertyScreen()),
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (_) => const AddPropertyScreen()),
                             );
-                          }, 
+                          },
                           child: const Text('Add New'),
                         ),
                       ],
@@ -288,12 +306,14 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                   else if (provider.properties.isEmpty)
                     EmptyStateWidget(
                       title: 'No Properties Yet',
-                      message: 'Add your first property to start managing units and tenants.',
+                      message:
+                          'Add your first property to start managing units and tenants.',
                       icon: Icons.apartment,
                       actionLabel: 'Add Property',
                       onActionPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const AddPropertyScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const AddPropertyScreen()),
                         );
                       },
                     )
@@ -315,7 +335,8 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                                 child: Card(
                                   elevation: 2,
                                   margin: const EdgeInsets.only(bottom: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                   child: ListTile(
                                     contentPadding: const EdgeInsets.all(12),
                                     leading: Hero(
@@ -323,32 +344,46 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                                       child: Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: AppConstants.primaryColor.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: AppConstants.primaryColor
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
-                                        child: const Icon(Icons.apartment, color: AppConstants.primaryColor),
+                                        child: const Icon(Icons.apartment,
+                                            color: AppConstants.primaryColor),
                                       ),
                                     ),
-                                    title: Text(property.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    title: Text(property.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                                            const Icon(Icons.location_on,
+                                                size: 14, color: Colors.grey),
                                             const SizedBox(width: 4),
-                                            Text(property.location, style: const TextStyle(fontSize: 12)),
+                                            Text(property.location,
+                                                style: const TextStyle(
+                                                    fontSize: 12)),
                                           ],
                                         ),
                                         const SizedBox(height: 4),
-                                        Text('${property.floorsCount} Floors', style: const TextStyle(fontSize: 12, color: AppConstants.secondaryColor)),
+                                        Text('${property.floorsCount} Floors',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppConstants
+                                                    .secondaryColor)),
                                       ],
                                     ),
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (_) => PropertyDetailsScreen(property: property),
+                                          builder: (_) => PropertyDetailsScreen(
+                                              property: property),
                                         ),
                                       );
                                     },
@@ -360,135 +395,138 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 80), // Space for FAB
-                  ],
-                ),
+                  const SizedBox(height: 80), // Space for FAB
+                ],
               ),
-            );
-          },
-        ),
-        floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            FloatingActionButton(
-              heroTag: 'ai_fab',
-              onPressed: () {
-                // Navigate to AI Chat
-                // Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen()));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('KodiPay AI coming soon!')));
-              },
-              backgroundColor: AppConstants.secondaryColor,
-              child: const Icon(Icons.auto_awesome, color: Colors.white),
             ),
-            const SizedBox(height: 16),
-            FloatingActionButton.extended(
-              heroTag: 'add_property_fab',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AddPropertyScreen()),
-                );
-              },
-              backgroundColor: AppConstants.primaryColor,
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text('Add Property', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-        bottomNavigationBar: _isAdLoaded
-            ? SizedBox(
-                height: _bannerAd!.size.height.toDouble(),
-                width: _bannerAd!.size.width.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
-              )
-            : null,
-      );
-    }
+          );
+        },
+      ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'ai_fab',
+            onPressed: () {
+              // Navigate to AI Chat
+              // Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen()));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('KodiPay AI coming soon!')));
+            },
+            backgroundColor: AppConstants.secondaryColor,
+            child: const Icon(Icons.auto_awesome, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton.extended(
+            heroTag: 'add_property_fab',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AddPropertyScreen()),
+              );
+            },
+            backgroundColor: AppConstants.primaryColor,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text('Add Property',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _isAdLoaded
+          ? SizedBox(
+              height: _bannerAd!.size.height.toDouble(),
+              width: _bannerAd!.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            )
+          : null,
+    );
+  }
 
-    Widget _buildStatsGrid() {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Charts Section
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth > 800) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: OccupancyChart(
-                          occupied: (_insights!['occupiedUnits'] as num).toInt(),
-                          total: (_insights!['totalUnits'] as num).toInt(),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: RevenueChart(insights: _insights!),
-                      ),
-                    ],
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      OccupancyChart(
+  Widget _buildStatsGrid() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Charts Section
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 800) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: OccupancyChart(
                         occupied: (_insights!['occupiedUnits'] as num).toInt(),
                         total: (_insights!['totalUnits'] as num).toInt(),
                       ),
-                      const SizedBox(height: 16),
-                      RevenueChart(insights: _insights!),
-                    ],
-                  );
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            
-            // Secondary Stats
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'Maintenance',
-                    '${_insights!['pendingMaintenance']}',
-                    Icons.build,
-                    Colors.orange,
-                    'Pending Requests',
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildStatCard(
-                    'Properties',
-                    '${_insights!['totalProperties']}',
-                    Icons.domain,
-                    Colors.purple,
-                    'Total Managed',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ReportService().generateMonthlyReport(_insights!);
-                },
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Generate Monthly Report'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppConstants.secondaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: RevenueChart(insights: _insights!),
+                    ),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    OccupancyChart(
+                      occupied: (_insights!['occupiedUnits'] as num).toInt(),
+                      total: (_insights!['totalUnits'] as num).toInt(),
+                    ),
+                    const SizedBox(height: 16),
+                    RevenueChart(insights: _insights!),
+                  ],
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Secondary Stats
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Maintenance',
+                  '${_insights!['pendingMaintenance']}',
+                  Icons.build,
+                  Colors.orange,
+                  'Pending Requests',
                 ),
               ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildStatCard(
+                  'Properties',
+                  '${_insights!['totalProperties']}',
+                  Icons.domain,
+                  Colors.purple,
+                  'Total Managed',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                ReportService().generateMonthlyReport(_insights!);
+              },
+              icon: const Icon(Icons.picture_as_pdf),
+              label: const Text('Generate Monthly Report'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppConstants.secondaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
             ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildRiskAlerts(List<dynamic> alerts) {
     return Padding(
@@ -498,7 +536,10 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
         children: [
           const Text(
             'Risk Alerts',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppConstants.errorColor),
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppConstants.errorColor),
           ),
           const SizedBox(height: 8),
           ListView.builder(
@@ -513,8 +554,11 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                 child: ListTile(
                   leading: const Icon(Icons.warning, color: Colors.red),
                   title: Text('Suspicious Payment: KES ${alert['amount']}'),
-                  subtitle: Text('Unit: ${alert['unit']['unit_number']} - ${alert['fraud_flags'][0]}'),
-                  trailing: Text(alert['fraud_status'].toString().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                  subtitle: Text(
+                      'Unit: ${alert['unit']['unit_number']} - ${alert['fraud_flags'][0]}'),
+                  trailing: Text(alert['fraud_status'].toString().toUpperCase(),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.red)),
                 ),
               );
             },
@@ -525,7 +569,8 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color, String subtitle) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -547,7 +592,11 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Icon(icon, color: color, size: 24),
-              Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.bold)),
+              Text(title,
+                  style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),

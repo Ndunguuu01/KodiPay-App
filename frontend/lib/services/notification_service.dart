@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
+import '../utils/secure_storage.dart';
 import '../utils/constants.dart';
 
 class NotificationService {
@@ -13,7 +14,7 @@ class NotificationService {
 
   NotificationService._internal();
 
-  late IO.Socket socket;
+  late io.Socket socket;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -24,14 +25,15 @@ class NotificationService {
     // Initialize Local Notifications
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    
+
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
     // Initialize Socket.io
-    socket = IO.io(AppConstants.baseUrl.replaceAll('/api', ''), <String, dynamic>{
+    socket =
+        io.io(AppConstants.baseUrl.replaceAll('/api', ''), <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -39,7 +41,7 @@ class NotificationService {
     socket.connect();
 
     socket.onConnect((_) {
-      print('Connected to Socket.io');
+      debugPrint('Connected to Socket.io');
       _joinRooms();
     });
 
@@ -51,11 +53,13 @@ class NotificationService {
     });
 
     socket.on('typing', (data) {
-      _typingController.add({'isTyping': true, 'user': data['user'], 'room': data['room']});
+      _typingController
+          .add({'isTyping': true, 'user': data['user'], 'room': data['room']});
     });
 
     socket.on('stop_typing', (data) {
-      _typingController.add({'isTyping': false, 'user': data['user'], 'room': data['room']});
+      _typingController
+          .add({'isTyping': false, 'user': data['user'], 'room': data['room']});
     });
 
     socket.on('new_bill', (data) {
@@ -88,8 +92,7 @@ class NotificationService {
   }
 
   Future<void> _joinRooms() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt('userId');
+    final userId = await SecureStorage.getUserId();
     if (userId != null) {
       socket.emit('join_room', 'user_$userId');
     }
@@ -113,7 +116,7 @@ class NotificationService {
     );
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
-    
+
     await flutterLocalNotificationsPlugin.show(
       0,
       title,

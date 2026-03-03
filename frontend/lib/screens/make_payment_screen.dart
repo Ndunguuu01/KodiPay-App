@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/payment.dart';
 import '../providers/payment_provider.dart';
 import '../utils/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/secure_storage.dart';
 import '../services/stripe_service.dart';
 
 class MakePaymentScreen extends StatefulWidget {
@@ -11,12 +11,8 @@ class MakePaymentScreen extends StatefulWidget {
   final int? unitId;
   final int? tenantId;
 
-  const MakePaymentScreen({
-    super.key, 
-    this.initialAmount, 
-    this.unitId, 
-    this.tenantId
-  });
+  const MakePaymentScreen(
+      {super.key, this.initialAmount, this.unitId, this.tenantId});
 
   @override
   State<MakePaymentScreen> createState() => _MakePaymentScreenState();
@@ -31,12 +27,10 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(
-      text: widget.initialAmount?.toString() ?? ''
-    );
-    _unitIdController = TextEditingController(
-      text: widget.unitId?.toString() ?? ''
-    );
+    _amountController =
+        TextEditingController(text: widget.initialAmount?.toString() ?? '');
+    _unitIdController =
+        TextEditingController(text: widget.unitId?.toString() ?? '');
   }
 
   @override
@@ -49,8 +43,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
 
   void _submitPayment() async {
     if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt('userId');
+      final userId = await SecureStorage.getUserId();
 
       if (userId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -61,7 +54,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
 
       // Mock unit ID for now if not provided, or assume user knows it
       // Ideally we fetch user's rented unit
-      int unitId = widget.unitId ?? int.tryParse(_unitIdController.text) ?? 1; 
+      int unitId = widget.unitId ?? int.tryParse(_unitIdController.text) ?? 1;
 
       final payment = Payment(
         tenantId: userId,
@@ -100,8 +93,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt('userId');
+    final userId = await SecureStorage.getUserId();
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not found. Please login again.')),
@@ -166,12 +158,14 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                   children: [
                     const Text(
                       'Payment Details',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     Card(
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -182,14 +176,17 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                               onChanged: (val) => setState(() {}),
                               decoration: InputDecoration(
                                 labelText: 'Amount (KES)',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
                                 prefixIcon: const Icon(Icons.attach_money),
                                 filled: true,
                                 fillColor: Colors.grey[50],
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) return 'Enter amount';
-                                if (double.tryParse(value) == null) return 'Invalid number';
+                                if (value == null || value.isEmpty)
+                                  return 'Enter amount';
+                                if (double.tryParse(value) == null)
+                                  return 'Invalid number';
                                 return null;
                               },
                             ),
@@ -199,7 +196,8 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 labelText: 'Unit ID (Optional)',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
                                 prefixIcon: const Icon(Icons.home),
                                 filled: true,
                                 fillColor: Colors.grey[50],
@@ -212,7 +210,8 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                     const SizedBox(height: 24),
                     const Text(
                       'Select Method',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -240,7 +239,8 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                     if (_selectedMethod == 'mpesa')
                       Card(
                         elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: TextFormField(
@@ -248,14 +248,16 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
                               labelText: 'M-Pesa Phone Number',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                               prefixIcon: const Icon(Icons.phone),
                               hintText: '2547...',
                               filled: true,
                               fillColor: Colors.grey[50],
                             ),
                             validator: (value) {
-                              if (_selectedMethod == 'mpesa' && (value == null || value.isEmpty)) {
+                              if (_selectedMethod == 'mpesa' &&
+                                  (value == null || value.isEmpty)) {
                                 return 'Enter phone number';
                               }
                               return null;
@@ -280,15 +282,24 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedMethod == 'mpesa' ? Colors.green : Colors.indigo,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              backgroundColor: _selectedMethod == 'mpesa'
+                                  ? Colors.green
+                                  : Colors.indigo,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
                               elevation: 4,
                             ),
                             child: provider.isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white)
                                 : Text(
-                                    _selectedMethod == 'mpesa' ? 'Pay with M-Pesa' : 'Pay with Card',
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                    _selectedMethod == 'mpesa'
+                                        ? 'Pay with M-Pesa'
+                                        : 'Pay with Card',
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
                                   ),
                           ),
                         );
@@ -304,7 +315,8 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
     );
   }
 
-  Widget _buildMethodCard(String title, IconData icon, Color color, String method) {
+  Widget _buildMethodCard(
+      String title, IconData icon, Color color, String method) {
     final isSelected = _selectedMethod == method;
     return GestureDetector(
       onTap: () => setState(() => _selectedMethod = method),

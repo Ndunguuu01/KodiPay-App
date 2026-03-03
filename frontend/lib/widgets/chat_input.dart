@@ -181,10 +181,10 @@ class _ChatInputState extends State<ChatInput> {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: _handleSend,
-                child: CircleAvatar(
+                child: const CircleAvatar(
                   radius: 24,
                   backgroundColor: AppConstants.primaryColor,
-                  child: const Icon(Icons.send, color: Colors.white, size: 20),
+                  child: Icon(Icons.send, color: Colors.white, size: 20),
                 ),
               ),
             ],

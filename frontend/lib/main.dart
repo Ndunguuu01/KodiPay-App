@@ -26,7 +26,7 @@ void main() async {
   try {
     await AdService.init();
   } catch (e) {
-    print('AdService init failed: $e');
+    debugPrint('AdService init failed: $e');
   }
 
   // Initialize Notification Service
@@ -34,7 +34,7 @@ void main() async {
     final notificationService = NotificationService();
     await notificationService.init();
   } catch (e) {
-    print('NotificationService init failed: $e');
+    debugPrint('NotificationService init failed: $e');
   }
 
   runApp(const KodiPayApp());

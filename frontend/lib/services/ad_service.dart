@@ -10,7 +10,7 @@ class AdService {
 
   static String get bannerAdUnitId {
     if (kIsWeb) return ''; // No ads on web for now
-    
+
     if (defaultTargetPlatform == TargetPlatform.android) {
       return 'ca-app-pub-3940256099942544/6300978111'; // Test Banner ID
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -26,13 +26,13 @@ class AdService {
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (Ad ad) => print('Ad loaded.'),
+        onAdLoaded: (Ad ad) => debugPrint('Ad loaded.'),
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
           ad.dispose();
-          print('Ad failed to load: $error');
+          debugPrint('Ad failed to load: $error');
         },
-        onAdOpened: (Ad ad) => print('Ad opened.'),
-        onAdClosed: (Ad ad) => print('Ad closed.'),
+        onAdOpened: (Ad ad) => debugPrint('Ad opened.'),
+        onAdClosed: (Ad ad) => debugPrint('Ad closed.'),
       ),
     );
   }

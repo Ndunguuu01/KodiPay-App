@@ -1,23 +1,29 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
+import '../utils/secure_storage.dart';
 import '../utils/constants.dart';
 
 class SocketService {
-  late IO.Socket socket;
+  late io.Socket socket;
 
-  void init() {
-    socket = IO.io(AppConstants.baseUrl, <String, dynamic>{
+  Future<void> init() async {
+    final token = await SecureStorage.getToken();
+
+    socket =
+        io.io(AppConstants.baseUrl.replaceAll('/api', ''), <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
+      'auth': {'token': token ?? ''},
     });
 
     socket.connect();
 
     socket.onConnect((_) {
-      print('Connected to socket server');
+      debugPrint('Connected to socket server');
     });
 
     socket.onDisconnect((_) {
-      print('Disconnected from socket server');
+      debugPrint('Disconnected from socket server');
     });
   }
 
