@@ -3,7 +3,7 @@ services:
     name: kodipay-backend
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && node sync_db.js
     startCommand: node server.js
     envVars:
       - key: NODE_VERSION
