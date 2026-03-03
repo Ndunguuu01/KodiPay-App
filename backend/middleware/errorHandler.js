@@ -35,6 +35,11 @@ const errorHandler = (err, req, res, next) => {
         return res.status(400).json({ message: err.errors[0]?.message || 'Validation error.' });
     }
 
+    // CORS policy error
+    if (err.message && err.message.startsWith('CORS policy:')) {
+        return res.status(403).json({ message: err.message });
+    }
+
     // Default: Internal server error — never expose internals
     const statusCode = err.statusCode || 500;
     const message = process.env.NODE_ENV === 'production'
