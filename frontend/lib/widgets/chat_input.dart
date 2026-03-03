@@ -141,7 +141,7 @@ class _ChatInputState extends State<ChatInput> {
                       IconButton(
                         icon: const Icon(Icons.emoji_emotions_outlined,
                             color: Colors.grey),
-                        onPressed: () {}, // TODO: Implement Emoji Picker
+                        onPressed: () {}, // Emoji picker (future enhancement)
                       ),
                       Expanded(
                         child: TextField(

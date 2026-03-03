@@ -20,7 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _phoneController = TextEditingController();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
-  
+
   XFile? _imageFile;
   Uint8List? _webImageBytes;
   String? _base64Image;
@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _pickImage() async {
     bool permissionGranted = false;
-    
+
     if (kIsWeb) {
       permissionGranted = true;
     } else if (defaultTargetPlatform == TargetPlatform.android) {
@@ -98,7 +98,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Permission denied. Please enable gallery access in settings.'),
+            content: Text(
+                'Permission denied. Please enable gallery access in settings.'),
             action: SnackBarAction(
               label: 'Settings',
               onPressed: openAppSettings,
@@ -111,7 +112,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      final success = await Provider.of<AuthProvider>(context, listen: false).updateProfile(
+      final success =
+          await Provider.of<AuthProvider>(context, listen: false).updateProfile(
         _nameController.text,
         _phoneController.text,
         _base64Image,
@@ -124,7 +126,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(Provider.of<AuthProvider>(context, listen: false).errorMessage ?? 'Update failed')),
+            SnackBar(
+                content: Text(Provider.of<AuthProvider>(context, listen: false)
+                        .errorMessage ??
+                    'Update failed')),
           );
         }
       }
@@ -132,14 +137,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _changePassword() async {
-    if (_currentPasswordController.text.isEmpty || _newPasswordController.text.isEmpty) {
+    if (_currentPasswordController.text.isEmpty ||
+        _newPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in both password fields')),
       );
       return;
     }
 
-    final success = await Provider.of<AuthProvider>(context, listen: false).changePassword(
+    final success =
+        await Provider.of<AuthProvider>(context, listen: false).changePassword(
       _currentPasswordController.text,
       _newPasswordController.text,
     );
@@ -156,7 +163,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Provider.of<AuthProvider>(context, listen: false).errorMessage ?? 'Password change failed')),
+          SnackBar(
+              content: Text(Provider.of<AuthProvider>(context, listen: false)
+                      .errorMessage ??
+                  'Password change failed')),
         );
       }
     }
@@ -186,11 +196,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     CircleAvatar(
                       radius: 60,
                       backgroundColor: Colors.grey[200],
-                      backgroundImage: _webImageBytes != null 
-                          ? MemoryImage(_webImageBytes!) 
-                          : null, // TODO: Show existing profile pic if available
-                      child: _imageFile == null
-                          ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                      backgroundImage: _webImageBytes != null
+                          ? MemoryImage(_webImageBytes!) as ImageProvider
+                          : (authProvider.profileImage != null &&
+                                  authProvider.profileImage!.isNotEmpty
+                              ? NetworkImage(authProvider.profileImage!)
+                              : null),
+                      child: (_imageFile == null &&
+                              (authProvider.profileImage == null ||
+                                  authProvider.profileImage!.isEmpty))
+                          ? const Icon(Icons.person,
+                              size: 60, color: Colors.grey)
                           : null,
                     ),
                     Positioned(
@@ -202,7 +218,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: AppConstants.primaryColor,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        child: const Icon(Icons.camera_alt,
+                            color: Colors.white, size: 20),
                       ),
                     ),
                   ],
@@ -216,9 +233,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: InputDecoration(
                   labelText: 'Full Name',
                   prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your name' : null,
               ),
               const SizedBox(height: 20),
 
@@ -228,7 +247,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: InputDecoration(
                   labelText: 'Phone Number',
                   prefixIcon: const Icon(Icons.phone_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 keyboardType: TextInputType.phone,
               ),
@@ -242,11 +262,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: authProvider.isLoading ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppConstants.primaryColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   child: authProvider.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Save Changes', style: TextStyle(fontSize: 16, color: Colors.white)),
+                      : const Text('Save Changes',
+                          style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
               ),
               const SizedBox(height: 30),
@@ -255,15 +277,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Change Password Section
               ListTile(
-                title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
-                trailing: Icon(_isChangingPassword ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                title: const Text('Change Password',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                trailing: Icon(_isChangingPassword
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down),
                 onTap: () {
                   setState(() {
                     _isChangingPassword = !_isChangingPassword;
                   });
                 },
               ),
-              
+
               if (_isChangingPassword) ...[
                 const SizedBox(height: 10),
                 TextFormField(
@@ -271,7 +296,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: InputDecoration(
                     labelText: 'Current Password',
                     prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   obscureText: true,
                 ),
@@ -281,7 +307,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: InputDecoration(
                     labelText: 'New Password',
                     prefixIcon: const Icon(Icons.lock_reset),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   obscureText: true,
                 ),
@@ -293,9 +320,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: authProvider.isLoading ? null : _changePassword,
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: AppConstants.primaryColor),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text('Update Password', style: TextStyle(fontSize: 16, color: AppConstants.primaryColor)),
+                    child: Text('Update Password',
+                        style: TextStyle(
+                            fontSize: 16, color: AppConstants.primaryColor)),
                   ),
                 ),
               ],

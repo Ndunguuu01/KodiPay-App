@@ -127,6 +127,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
     if (_isTenant) {
       // For tenant, fetch leases to find their property
       final leaseProvider = Provider.of<LeaseProvider>(context, listen: false);
+      final propertyProvider =
+          Provider.of<PropertyProvider>(context, listen: false);
       if (auth.userId != null) {
         await leaseProvider.fetchLeases(auth.userId!);
         final activeLease = leaseProvider.leases.firstWhere(
@@ -136,24 +138,9 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
               : null as dynamic,
         );
 
-        // We need to fetch the unit to get the property ID
-        // Since lease has unit details included (based on backend controller), we might access it directly
-        // But the Lease model in frontend might need checking.
-        // Assuming we can get propertyId from the unit in the lease.
-        // If not, we might need a better way.
-        // Let's assume for now we can get it or we need to fetch unit details.
-        // Actually, the backend `findAllByTenant` includes `unit`.
-        // Let's check the Lease model.
-
-        // Workaround: If Lease model doesn't have propertyId, we might need to fetch it.
-        // But wait, the backend `findAllByTenant` includes `unit`. Does `unit` include `property_id`?
-        // Yes, Unit model usually has property_id.
-
         if (activeLease.unit != null) {
           final propertyId = activeLease.unit!.propertyId;
           if (propertyId != null) {
-            final propertyProvider =
-                Provider.of<PropertyProvider>(context, listen: false);
             final property =
                 await propertyProvider.fetchPropertyById(propertyId);
 

@@ -9,12 +9,14 @@ class AuthProvider with ChangeNotifier {
   String? _userName;
   int? _userId;
   String? _userRole;
+  String? _profileImage;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String? get userName => _userName;
   int? get userId => _userId;
   String? get userRole => _userRole;
+  String? get profileImage => _profileImage;
 
   Future<bool> tryAutoLogin() async {
     await loadUser();
@@ -26,6 +28,7 @@ class AuthProvider with ChangeNotifier {
     _userName = prefs.getString('userName');
     _userId = prefs.getInt('userId');
     _userRole = prefs.getString('userRole');
+    _profileImage = prefs.getString('profileImage');
     notifyListeners();
   }
 
@@ -67,12 +70,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> register(String name, String email, String password, String phone, String role) async {
+  Future<bool> register(String name, String email, String password,
+      String phone, String role) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _authService.register(name, email, password, phone, role);
+    final result =
+        await _authService.register(name, email, password, phone, role);
 
     _isLoading = false;
     if (result['success']) {
@@ -85,7 +90,8 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> updateProfile(String name, String phone, String? profilePic) async {
+  Future<bool> updateProfile(
+      String name, String phone, String? profilePic) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -95,9 +101,11 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
     if (result['success']) {
       _userName = name;
+      if (profilePic != null) _profileImage = profilePic;
       // Also update shared preferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userName', name);
+      if (profilePic != null) await prefs.setString('profileImage', profilePic);
       notifyListeners();
       return true;
     } else {
@@ -107,12 +115,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> changePassword(String currentPassword, String newPassword) async {
+  Future<bool> changePassword(
+      String currentPassword, String newPassword) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _authService.changePassword(currentPassword, newPassword);
+    final result =
+        await _authService.changePassword(currentPassword, newPassword);
 
     _isLoading = false;
     if (result['success']) {
