@@ -118,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = prefs.getString('biometric_password');
 
     if (email == null || password == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content:

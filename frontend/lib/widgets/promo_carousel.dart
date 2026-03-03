@@ -88,7 +88,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
         ),
       );
     } else {
-      return Container(
+      return const DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [AppConstants.primaryColor, AppConstants.secondaryColor],
@@ -110,7 +110,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
             .toList();
 
         if (provider.isLoading) {
-          return SizedBox(
+          return const SizedBox(
             height: 180,
             child: Center(
                 child: CircularProgressIndicator(

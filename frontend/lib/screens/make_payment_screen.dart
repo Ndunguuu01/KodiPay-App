@@ -43,6 +43,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
 
   void _submitPayment() async {
     if (_formKey.currentState!.validate()) {
+      final provider = Provider.of<PaymentProvider>(context, listen: false);
       final userId = await SecureStorage.getUserId();
 
       if (userId == null) {
@@ -66,11 +67,9 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
         phone: _phoneController.text,
       );
 
-      final provider = Provider.of<PaymentProvider>(context, listen: false);
       final success = await provider.makePayment(payment);
 
       if (success && mounted) {
-        if (!mounted) return;
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payment initiated successfully!')),

@@ -98,6 +98,7 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     } else {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -125,12 +124,8 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 ),
               );
               // Refresh data after edit
-              if (mounted) {
-                // We might need to re-fetch unit details or rely on provider update
-                // Since we passed unit object, it might be stale.
-                // Ideally we should fetch unit by ID again or pop back.
-                // For now, let's just pop back to property details to see updated list is safer
-                // Or we can just setState if we had a way to refresh 'widget.unit'
+              if (context.mounted) {
+                // Pop back to property details to see updated list
                 Navigator.of(context).pop();
               }
             },

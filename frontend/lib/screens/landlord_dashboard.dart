@@ -129,9 +129,9 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                     const Icon(Icons.error_outline,
                         color: Colors.red, size: 48),
                     const SizedBox(height: 16),
-                    Text(
+                    const Text(
                       'Error loading properties',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.bold,
                           fontSize: 18),

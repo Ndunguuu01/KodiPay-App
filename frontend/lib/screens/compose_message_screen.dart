@@ -152,7 +152,6 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
         if (activeLease.unit != null) {
           final propertyId = activeLease.unit!.propertyId;
           if (propertyId != null) {
-            // Fetch property details to get landlord ID
             final propertyProvider =
                 Provider.of<PropertyProvider>(context, listen: false);
             final property =
@@ -216,6 +215,7 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
         return;
       }
 
+      final provider = Provider.of<MessageProvider>(context, listen: false);
       final userId = await SecureStorage.getUserId();
 
       final message = Message(
@@ -240,7 +240,6 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
       // FIX: I'll update the backend to allow sending to "LANDLORD_OF_PROPERTY" or similar?
       // Better: When tenant loads, fetch their property which SHOULD have owner_id.
 
-      final provider = Provider.of<MessageProvider>(context, listen: false);
       final success = await provider.sendMessage(message);
 
       if (success && mounted) {

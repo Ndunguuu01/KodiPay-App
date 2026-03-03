@@ -312,7 +312,7 @@ class _TenantDashboardState extends State<TenantDashboard> {
             : (provider.leases.isNotEmpty ? provider.leases.first : null);
 
         if (activeLease == null) {
-          return EmptyStateWidget(
+          return const EmptyStateWidget(
             title: 'No Active Lease',
             message: 'You do not have an active lease yet.',
             icon: Icons.home_work_outlined,
@@ -378,17 +378,17 @@ class _TenantDashboardState extends State<TenantDashboard> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(
+                const Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Due Date',
+                          Text('Due Date',
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 12)),
-                          const SizedBox(height: 4),
-                          const Text('5th of Month',
+                          SizedBox(height: 4),
+                          Text('5th of Month',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
@@ -399,11 +399,11 @@ class _TenantDashboardState extends State<TenantDashboard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Unit',
+                          Text('Unit',
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 12)),
-                          const SizedBox(height: 4),
-                          const Text('View Details',
+                          SizedBox(height: 4),
+                          Text('View Details',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
