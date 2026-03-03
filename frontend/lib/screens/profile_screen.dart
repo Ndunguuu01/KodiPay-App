@@ -214,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppConstants.primaryColor,
                           shape: BoxShape.circle,
                         ),
@@ -319,11 +319,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: OutlinedButton(
                     onPressed: authProvider.isLoading ? null : _changePassword,
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppConstants.primaryColor),
+                      side: const BorderSide(color: AppConstants.primaryColor),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text('Update Password',
+                    child: const Text('Update Password',
                         style: TextStyle(
                             fontSize: 16, color: AppConstants.primaryColor)),
                   ),
