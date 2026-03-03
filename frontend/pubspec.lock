@@ -338,10 +338,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_stripe_web
-      sha256: f248952994cf91b1b08672e86aa635f698892d594e33d6a9e0f512657ad8aa40
+      sha256: "9dda08ae58014d64f03184c22cdc81a9cb7f02beae11fd710a1258fbce826e4e"
       url: "https://pub.dev"
     source: hosted
-    version: "6.5.1"
+    version: "6.4.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -990,13 +990,13 @@ packages:
     source: hosted
     version: "6.4.0"
   stripe_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: stripe_platform_interface
-      sha256: "23c10f3875da07f85a6196fcb676e64c767ad2d04ec73ba4e941ac797a4ee4d3"
+      sha256: "84d589925cac4ae666e5d306b0edd3ff83bdd076a832a9eba0fbf9fa5216502d"
       url: "https://pub.dev"
     source: hosted
-    version: "11.5.0"
+    version: "11.4.0"
   term_glyph:
     dependency: transitive
     description:
