@@ -136,3 +136,4 @@ flutter:
 dependency_overrides:
   stripe_platform_interface: 11.4.0
   flutter_stripe_web: 6.4.0
+  flutter_stripe: 11.4.0
