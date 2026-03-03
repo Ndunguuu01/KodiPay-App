@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // API URL
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'https://kodipay-backend.onrender.com/api';
 
   // Colors - Premium Theme
   static const Color primaryColor = Color(0xFF1A237E); // Deep Navy Blue
