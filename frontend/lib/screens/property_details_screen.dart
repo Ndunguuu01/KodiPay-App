@@ -24,8 +24,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => Provider.of<UnitProvider>(context, listen: false)
-        .fetchUnits(widget.property.id!));
+    final unitProvider = Provider.of<UnitProvider>(context, listen: false);
+    Future.microtask(() => unitProvider.fetchUnits(widget.property.id!));
   }
 
   @override
@@ -224,7 +224,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         },
       );
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       showDialog(
         context: context,
@@ -242,7 +242,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ),
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Debug Error: $e')));
     }

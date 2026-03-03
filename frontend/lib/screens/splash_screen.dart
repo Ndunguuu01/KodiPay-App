@@ -37,7 +37,8 @@ class _SplashScreenState extends State<SplashScreen> {
       final LocalAuthentication auth = LocalAuthentication();
       bool canCheckBiometrics = false;
       try {
-        canCheckBiometrics = await auth.canCheckBiometrics || await auth.isDeviceSupported();
+        canCheckBiometrics =
+            await auth.canCheckBiometrics || await auth.isDeviceSupported();
       } catch (e) {
         canCheckBiometrics = false;
       }
@@ -60,42 +61,41 @@ class _SplashScreenState extends State<SplashScreen> {
         // User request specifically mentioned "ask for finger print first".
         // If not supported, we'll assume we should verify session or just go to login.
         // Let's assume if not supported, we just verify session (auto-login).
-        authenticated = true; 
+        authenticated = true;
       }
 
       if (authenticated) {
         // Restore session
         if (!mounted) return;
-        Provider.of<AuthProvider>(context, listen: false).tryAutoLogin().then((success) {
-          if (success && mounted) {
-            if (userRole == 'landlord') {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LandlordDashboard()),
-              );
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const TenantDashboard()),
-              );
-            }
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final success = await authProvider.tryAutoLogin();
+        if (!mounted) return;
+        if (success) {
+          if (userRole == 'landlord') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const LandlordDashboard()),
+            );
           } else {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            }
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const TenantDashboard()),
+            );
           }
-        });
-      } else {
-        // Authentication failed or cancelled
-        if (mounted) {
+        } else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
+      } else {
+        // Authentication failed or cancelled
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
       }
     } else {
       Navigator.pushReplacement(

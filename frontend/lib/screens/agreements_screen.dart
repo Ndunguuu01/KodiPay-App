@@ -18,8 +18,8 @@ class _AgreementsScreenState extends State<AgreementsScreen> {
     super.initState();
     final userId = Provider.of<AuthProvider>(context, listen: false).userId;
     if (userId != null) {
-      Future.microtask(() => Provider.of<LeaseProvider>(context, listen: false)
-          .fetchLeases(userId));
+      final leaseProvider = Provider.of<LeaseProvider>(context, listen: false);
+      Future.microtask(() => leaseProvider.fetchLeases(userId));
     }
   }
 

@@ -21,8 +21,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<AuthProvider>(context, listen: false).clearError());
+    final authProv = Provider.of<AuthProvider>(context, listen: false);
+    Future.microtask(() => authProv.clearError());
   }
 
   @override
@@ -47,7 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration Successful! Please login.')),
+          const SnackBar(
+              content: Text('Registration Successful! Please login.')),
         );
         Navigator.of(context).pop(); // Go back to login
       }
@@ -157,7 +158,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   items: const [
                     DropdownMenuItem(value: 'tenant', child: Text('Tenant')),
-                    DropdownMenuItem(value: 'landlord', child: Text('Landlord')),
+                    DropdownMenuItem(
+                        value: 'landlord', child: Text('Landlord')),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -173,7 +175,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: Text(
                           auth.errorMessage!,
-                          style: const TextStyle(color: AppConstants.errorColor),
+                          style:
+                              const TextStyle(color: AppConstants.errorColor),
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -204,7 +207,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             )
                           : const Text(
                               'Register',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                     );
                   },

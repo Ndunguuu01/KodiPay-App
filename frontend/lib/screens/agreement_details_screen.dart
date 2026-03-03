@@ -17,7 +17,7 @@ class AgreementDetailsScreen extends StatelessWidget {
     final success = await Provider.of<LeaseProvider>(context, listen: false)
         .signLease(lease.id!, userId);
 
-    if (success) {
+    if (success && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Agreement signed successfully!')),
       );
@@ -70,7 +70,8 @@ class AgreementDetailsScreen extends StatelessWidget {
                 child: Consumer<LeaseProvider>(
                   builder: (context, provider, child) {
                     return ElevatedButton(
-                      onPressed: provider.isLoading ? null : () => _signLease(context),
+                      onPressed:
+                          provider.isLoading ? null : () => _signLease(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppConstants.primaryColor,
                         foregroundColor: Colors.white,

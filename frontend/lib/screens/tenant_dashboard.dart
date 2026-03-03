@@ -36,14 +36,18 @@ class _TenantDashboardState extends State<TenantDashboard> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      final userId = Provider.of<AuthProvider>(context, listen: false).userId;
-      if (userId != null) {
-        Provider.of<LeaseProvider>(context, listen: false).fetchLeases(userId);
-        Provider.of<MessageProvider>(context, listen: false).fetchMessages();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final leaseProvider = Provider.of<LeaseProvider>(context, listen: false);
+    final messageProvider =
+        Provider.of<MessageProvider>(context, listen: false);
+    final userId = auth.userId;
+    if (userId != null) {
+      Future.microtask(() {
+        leaseProvider.fetchLeases(userId);
+        messageProvider.fetchMessages();
         NotificationService().init();
-      }
-    });
+      });
+    }
     if (!kIsWeb) {
       _loadAd();
     }
@@ -115,7 +119,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
                         children: [
                           const Text(
                             'My Unit',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           _buildUnitCard(),
@@ -125,12 +130,14 @@ class _TenantDashboardState extends State<TenantDashboard> {
                             children: [
                               const Text(
                                 'Marketplace',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               TextButton.icon(
                                 onPressed: () {
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const PostAdScreen()),
+                                    MaterialPageRoute(
+                                        builder: (_) => const PostAdScreen()),
                                   );
                                 },
                                 icon: const Icon(Icons.add_circle_outline),
@@ -143,14 +150,16 @@ class _TenantDashboardState extends State<TenantDashboard> {
                           const SizedBox(height: 24),
                           const Text(
                             'Recent Messages',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           _buildRecentMessages(),
                           const SizedBox(height: 24),
                           const Text(
                             'Quick Actions',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           _buildQuickActions(context),
@@ -165,7 +174,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
           // T&C Overlay
           Consumer<LeaseProvider>(
             builder: (context, provider, child) {
-              final pendingLease = provider.leases.any((l) => l.status == 'pending');
+              final pendingLease =
+                  provider.leases.any((l) => l.status == 'pending');
               if (!pendingLease) return const SizedBox.shrink();
 
               return Container(
@@ -176,7 +186,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.description, size: 64, color: Colors.white),
+                    const Icon(Icons.description,
+                        size: 64, color: Colors.white),
                     const SizedBox(height: 24),
                     const Text(
                       'Action Required',
@@ -198,7 +209,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const AgreementsScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const AgreementsScreen()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -208,7 +220,9 @@ class _TenantDashboardState extends State<TenantDashboard> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Review & Sign', style: TextStyle(fontSize: 18, color: Colors.white)),
+                        child: const Text('Review & Sign',
+                            style:
+                                TextStyle(fontSize: 18, color: Colors.white)),
                       ),
                     ),
                   ],
@@ -287,13 +301,14 @@ class _TenantDashboardState extends State<TenantDashboard> {
     return Consumer<LeaseProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
-          return const ShimmerLoadingWidget.rectangular(height: 200, width: double.infinity);
+          return const ShimmerLoadingWidget.rectangular(
+              height: 200, width: double.infinity);
         }
-        
+
         // Find active lease
         final activeLeases = provider.leases.where((l) => l.status == 'active');
-        final activeLease = activeLeases.isNotEmpty 
-            ? activeLeases.first 
+        final activeLease = activeLeases.isNotEmpty
+            ? activeLeases.first
             : (provider.leases.isNotEmpty ? provider.leases.first : null);
 
         if (activeLease == null) {
@@ -307,7 +322,10 @@ class _TenantDashboardState extends State<TenantDashboard> {
         return Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [AppConstants.primaryColor, Color(0xFF6A1B9A)], // Purple gradient
+              colors: [
+                AppConstants.primaryColor,
+                Color(0xFF6A1B9A)
+              ], // Purple gradient
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -333,7 +351,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
                       style: TextStyle(fontSize: 14, color: Colors.white70),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -365,9 +384,14 @@ class _TenantDashboardState extends State<TenantDashboard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Due Date', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const Text('Due Date',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12)),
                           const SizedBox(height: 4),
-                          const Text('5th of Month', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const Text('5th of Month',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -375,9 +399,14 @@ class _TenantDashboardState extends State<TenantDashboard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Unit', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const Text('Unit',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12)),
                           const SizedBox(height: 4),
-                          const Text('View Details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const Text('View Details',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -389,7 +418,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const PaymentsScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const PaymentsScreen()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -401,7 +431,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text('Pay Rent Now', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text('Pay Rent Now',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -412,7 +443,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionCard(BuildContext context, String title, IconData icon,
+      Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -451,7 +483,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
     return Consumer<MessageProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
-          return const ShimmerLoadingWidget.rectangular(height: 80, width: double.infinity);
+          return const ShimmerLoadingWidget.rectangular(
+              height: 80, width: double.infinity);
         }
 
         if (provider.messages.isEmpty) {
@@ -473,7 +506,8 @@ class _TenantDashboardState extends State<TenantDashboard> {
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: AppConstants.primaryColor.withOpacity(0.1),

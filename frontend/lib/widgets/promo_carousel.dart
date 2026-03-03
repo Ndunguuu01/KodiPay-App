@@ -19,14 +19,15 @@ class _PromoCarouselState extends State<PromoCarousel> {
   final PageController _pageController = PageController(viewportFraction: 0.9);
   int _currentPage = 0;
   Timer? _timer;
-  Map<int, VideoPlayerController> _videoControllers = {};
+  final Map<int, VideoPlayerController> _videoControllers = {};
 
   @override
   void initState() {
     super.initState();
     _startAutoSlide();
-    Future.microtask(() =>
-        Provider.of<MarketplaceProvider>(context, listen: false).fetchAds());
+    final marketplaceProvider =
+        Provider.of<MarketplaceProvider>(context, listen: false);
+    Future.microtask(() => marketplaceProvider.fetchAds());
   }
 
   @override
@@ -70,9 +71,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
       // This is complex for a carousel. For now, let's show a placeholder or try to initialize if not too heavy
       // Real implementation would require caching.
       // Let's stick to image placeholder for video or icon for now to avoid freezing UI
-      return Center(
-        child: Icon(Icons.play_circle_fill,
-            size: 50, color: Colors.white.withOpacity(0.8)),
+      return const Center(
+        child: Icon(Icons.play_circle_fill, size: 50, color: Colors.white),
       );
     } else if (ad.imageUrl != null) {
       return Container(
@@ -119,7 +119,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
         }
 
         if (ads.isEmpty) {
-          return SizedBox(
+          return const SizedBox(
             height: 180,
             child: Center(
               child: Column(

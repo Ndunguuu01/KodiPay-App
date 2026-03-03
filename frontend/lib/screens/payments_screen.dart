@@ -15,8 +15,9 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<PaymentProvider>(context, listen: false).fetchPayments());
+    final paymentProvider =
+        Provider.of<PaymentProvider>(context, listen: false);
+    Future.microtask(() => paymentProvider.fetchPayments());
   }
 
   @override
@@ -72,7 +73,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                       if (payment.createdAt != null)
                         Text(
                           '${payment.createdAt!.day}/${payment.createdAt!.month}/${payment.createdAt!.year}',
-                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 10, color: Colors.grey),
                         ),
                     ],
                   ),
@@ -90,7 +92,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         },
         backgroundColor: AppConstants.primaryColor,
         icon: const Icon(Icons.payment, color: Colors.white),
-        label: const Text('Make Payment', style: TextStyle(color: Colors.white)),
+        label:
+            const Text('Make Payment', style: TextStyle(color: Colors.white)),
       ),
     );
   }

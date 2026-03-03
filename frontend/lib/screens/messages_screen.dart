@@ -19,8 +19,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<MessageProvider>(context, listen: false).fetchMessages());
+    final messageProvider =
+        Provider.of<MessageProvider>(context, listen: false);
+    Future.microtask(() => messageProvider.fetchMessages());
   }
 
   @override
@@ -49,7 +50,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
               actionLabel: 'Compose Message',
               onActionPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ComposeMessageScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const ComposeMessageScreen()),
                 );
               },
             );
@@ -57,24 +59,26 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
           // Group messages by conversation
           final Map<String, dynamic> conversations = {};
-          final currentUserId = Provider.of<AuthProvider>(context, listen: false).userId;
-          
+          final currentUserId =
+              Provider.of<AuthProvider>(context, listen: false).userId;
+
           for (var message in provider.messages) {
             String key;
             String title;
             int? targetUserId;
             int? groupId;
-            
+
             if (message.groupId != null) {
               key = 'group_${message.groupId}';
-              title = 'Property Group ${message.groupId}'; // Ideally fetch property name
+              title =
+                  'Property Group ${message.groupId}'; // Ideally fetch property name
               groupId = message.groupId;
             } else {
-              final otherId = message.senderId == currentUserId 
-                  ? message.receiverId 
+              final otherId = message.senderId == currentUserId
+                  ? message.receiverId
                   : message.senderId;
               key = 'user_$otherId';
-              
+
               // Determine Title (Name of the other person)
               if (message.senderId == currentUserId) {
                 // I sent it, show Receiver Name
@@ -87,8 +91,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
             }
 
             // Keep the latest message for the preview
-            if (!conversations.containsKey(key) || 
-                (message.createdAt != null && conversations[key]['message'].createdAt!.isBefore(message.createdAt!))) {
+            if (!conversations.containsKey(key) ||
+                (message.createdAt != null &&
+                    conversations[key]['message']
+                        .createdAt!
+                        .isBefore(message.createdAt!))) {
               conversations[key] = {
                 'message': message,
                 'title': title,
@@ -99,7 +106,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
           }
 
           final sortedConversations = conversations.values.toList()
-            ..sort((a, b) => b['message'].createdAt!.compareTo(a['message'].createdAt!));
+            ..sort((a, b) =>
+                b['message'].createdAt!.compareTo(a['message'].createdAt!));
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -112,12 +120,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 elevation: 1,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: AppConstants.primaryColor.withOpacity(0.1),
                     child: Icon(
-                      conversation['groupId'] != null ? Icons.group : Icons.person,
+                      conversation['groupId'] != null
+                          ? Icons.group
+                          : Icons.person,
                       color: AppConstants.primaryColor,
                     ),
                   ),
@@ -130,14 +141,19 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: message.senderId == currentUserId ? Colors.grey : Colors.black87,
-                      fontStyle: message.senderId == currentUserId ? FontStyle.italic : FontStyle.normal,
+                      color: message.senderId == currentUserId
+                          ? Colors.grey
+                          : Colors.black87,
+                      fontStyle: message.senderId == currentUserId
+                          ? FontStyle.italic
+                          : FontStyle.normal,
                     ),
                   ),
                   trailing: message.createdAt != null
                       ? Text(
                           '${message.createdAt!.hour}:${message.createdAt!.minute.toString().padLeft(2, '0')}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
                         )
                       : null,
                   onTap: () {

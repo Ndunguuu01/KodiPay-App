@@ -33,9 +33,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch messages when screen opens
-    Future.microtask(() =>
-        Provider.of<MessageProvider>(context, listen: false).fetchMessages());
+    final messageProvider =
+        Provider.of<MessageProvider>(context, listen: false);
+    Future.microtask(() => messageProvider.fetchMessages());
   }
 
   void _sendMessage(String text, XFile? image) async {
@@ -66,12 +66,13 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handleTyping(String text) {
     final provider = Provider.of<MessageProvider>(context, listen: false);
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    
+
     String room = '';
     if (widget.groupId != null) {
       room = 'group_${widget.groupId}';
     } else if (widget.targetUserId != null) {
-      room = 'user_${widget.targetUserId}'; // Note: This might need adjustment for 1-on-1 rooms
+      room =
+          'user_${widget.targetUserId}'; // Note: This might need adjustment for 1-on-1 rooms
     }
 
     if (room.isNotEmpty) {
@@ -118,17 +119,19 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Text(
                   widget.groupName ?? widget.targetUserName ?? 'Chat',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Consumer<MessageProvider>(
                   builder: (context, provider, _) {
                     if (provider.isTyping && provider.typingUser != null) {
                       // Simple check: if someone is typing in the room we are looking at?
-                      // The provider's isTyping is global for the socket event. 
+                      // The provider's isTyping is global for the socket event.
                       // Ideally we filter by room, but for now this works as a basic indicator.
                       return const Text(
                         'typing...',
-                        style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                        style: TextStyle(
+                            fontSize: 12, fontStyle: FontStyle.italic),
                       );
                     }
                     return const SizedBox.shrink();
@@ -142,7 +145,8 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/chat_bg.png"), // Optional: Add a background pattern
+            image: AssetImage(
+                "assets/images/chat_bg.png"), // Optional: Add a background pattern
             fit: BoxFit.cover,
             opacity: 0.1,
           ),
@@ -158,8 +162,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     if (widget.groupId != null) {
                       return m.groupId == widget.groupId;
                     } else {
-                      return (m.senderId == currentUserId && m.receiverId == widget.targetUserId) ||
-                             (m.senderId == widget.targetUserId && m.receiverId == currentUserId);
+                      return (m.senderId == currentUserId &&
+                              m.receiverId == widget.targetUserId) ||
+                          (m.senderId == widget.targetUserId &&
+                              m.receiverId == currentUserId);
                     }
                   }).toList();
 
@@ -170,7 +176,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (messages.isEmpty) {
                     return Center(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.8),
                           borderRadius: BorderRadius.circular(8),
@@ -184,7 +191,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   }
 
                   // Scroll to bottom on new message
-                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((_) => _scrollToBottom());
 
                   return ListView.builder(
                     controller: _scrollController,

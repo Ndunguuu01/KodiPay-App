@@ -44,8 +44,10 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
   @override
   void initState() {
     super.initState();
+    final propertyProvider =
+        Provider.of<PropertyProvider>(context, listen: false);
     Future.microtask(() {
-      Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
+      propertyProvider.fetchProperties();
       _fetchInsights();
       try {
         NotificationService().init();
@@ -232,7 +234,7 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
                                   final prefs =
                                       await SharedPreferences.getInstance();
                                   await prefs.clear();
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     Navigator.of(context)
                                         .pushReplacementNamed('/login');
                                   }

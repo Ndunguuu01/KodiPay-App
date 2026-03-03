@@ -13,7 +13,7 @@ import '../providers/message_provider.dart';
 import '../providers/property_provider.dart';
 import '../providers/unit_provider.dart';
 import '../utils/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/secure_storage.dart';
 
 class ComposeMessageScreen extends StatefulWidget {
   const ComposeMessageScreen({super.key});
@@ -32,7 +32,7 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
   int? _landlordId;
   bool _isTenant = false;
   bool _isLoadingInit = true;
-  
+
   XFile? _selectedImage;
   Uint8List? _webImageBytes;
   String? _base64Image;
@@ -46,14 +46,16 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
 
   void _onTextChanged() {
     final provider = Provider.of<MessageProvider>(context, listen: false);
-    final user = Provider.of<AuthProvider>(context, listen: false).userName ?? 'User';
-    
+    final user =
+        Provider.of<AuthProvider>(context, listen: false).userName ?? 'User';
+
     // Determine room name
     String room = '';
     if (_messageType == 'group' && _selectedPropertyId != null) {
       room = 'group_$_selectedPropertyId';
     } else if (_selectedReceiverId != null) {
-      room = 'user_$_selectedReceiverId'; // This logic might need refinement for 1-on-1 rooms
+      room =
+          'user_$_selectedReceiverId'; // This logic might need refinement for 1-on-1 rooms
     }
 
     if (room.isNotEmpty) {
@@ -67,7 +69,7 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
 
   Future<void> _pickImage() async {
     bool permissionGranted = false;
-    
+
     if (kIsWeb) {
       permissionGranted = true;
     } else if (defaultTargetPlatform == TargetPlatform.android) {
@@ -83,8 +85,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
           if (storageStatus.isGranted) {
             permissionGranted = true;
           } else {
-             final storageRequest = await Permission.storage.request();
-             permissionGranted = storageRequest.isGranted;
+            final storageRequest = await Permission.storage.request();
+            permissionGranted = storageRequest.isGranted;
           }
         }
       }
@@ -129,7 +131,9 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
         await leaseProvider.fetchLeases(auth.userId!);
         final activeLease = leaseProvider.leases.firstWhere(
           (l) => l.status == 'active' || l.status == 'pending',
-          orElse: () => leaseProvider.leases.isNotEmpty ? leaseProvider.leases.first : null as dynamic,
+          orElse: () => leaseProvider.leases.isNotEmpty
+              ? leaseProvider.leases.first
+              : null as dynamic,
         );
 
         // We need to fetch the unit to get the property ID
@@ -140,32 +144,34 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
         // Let's assume for now we can get it or we need to fetch unit details.
         // Actually, the backend `findAllByTenant` includes `unit`.
         // Let's check the Lease model.
-        
+
         // Workaround: If Lease model doesn't have propertyId, we might need to fetch it.
         // But wait, the backend `findAllByTenant` includes `unit`. Does `unit` include `property_id`?
         // Yes, Unit model usually has property_id.
-        
+
         if (activeLease.unit != null) {
-           final propertyId = activeLease.unit!.propertyId;
-           if (propertyId != null) {
-             // Fetch property details to get landlord ID
-             final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-             final property = await propertyProvider.fetchPropertyById(propertyId);
-             
-             if (mounted) {
-               setState(() {
-                 _selectedPropertyId = propertyId;
-                 _landlordId = property?.landlordId;
-               });
-             }
-           }
-        }
+          final propertyId = activeLease.unit!.propertyId;
+          if (propertyId != null) {
+            // Fetch property details to get landlord ID
+            final propertyProvider =
+                Provider.of<PropertyProvider>(context, listen: false);
+            final property =
+                await propertyProvider.fetchPropertyById(propertyId);
+
+            if (mounted) {
+              setState(() {
+                _selectedPropertyId = propertyId;
+                _landlordId = property?.landlordId;
+              });
             }
+          }
+        }
+      }
     } else {
       // Landlord
       Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
     }
-    
+
     setState(() {
       _isLoadingInit = false;
     });
@@ -195,28 +201,31 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
         );
         return;
       }
-      
+
       // For Tenant DMing Landlord, we need to handle _selectedReceiverId
       // If tenant selects "Landlord", we need to know the Landlord's ID.
       // Currently we might not have it easily.
       // OPTION: Send a message with `receiverId: 0` or similar and let backend handle? No.
       // OPTION: Fetch property owner.
-      
-      if ((_messageType == 'direct' || _messageType == 'landlord') && _selectedReceiverId == null) {
-         ScaffoldMessenger.of(context).showSnackBar(
+
+      if ((_messageType == 'direct' || _messageType == 'landlord') &&
+          _selectedReceiverId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a recipient')),
         );
         return;
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt('userId');
+      final userId = await SecureStorage.getUserId();
 
       final message = Message(
         senderId: userId!,
-        receiverId: (_messageType == 'direct' || _messageType == 'landlord') ? _selectedReceiverId : null,
+        receiverId: (_messageType == 'direct' || _messageType == 'landlord')
+            ? _selectedReceiverId
+            : null,
         groupId: _messageType == 'group' ? _selectedPropertyId : null,
-        content: _selectedImage != null ? _base64Image! : _contentController.text,
+        content:
+            _selectedImage != null ? _base64Image! : _contentController.text,
         type: _selectedImage != null ? 'image' : 'text',
       );
 
@@ -227,10 +236,10 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
       // I will restrict Tenants to Group Messages for this iteration if I can't get Landlord ID.
       // BUT, the user asked for "tenant can only dm the landlord or the group".
       // So I MUST implement Landlord DM.
-      
+
       // FIX: I'll update the backend to allow sending to "LANDLORD_OF_PROPERTY" or similar?
       // Better: When tenant loads, fetch their property which SHOULD have owner_id.
-      
+
       final provider = Provider.of<MessageProvider>(context, listen: false);
       final success = await provider.sendMessage(message);
 
@@ -262,7 +271,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
+                const Icon(Icons.warning_amber_rounded,
+                    size: 64, color: Colors.orange),
                 const SizedBox(height: 16),
                 const Text(
                   'No Active Lease Found',
@@ -308,26 +318,36 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
                   prefixIcon: Icon(Icons.category),
                 ),
                 items: [
-                  if (!_isTenant) const DropdownMenuItem(value: 'direct', child: Text('Direct Message')),
-                  const DropdownMenuItem(value: 'group', child: Text('Group Message (Apartment)')),
-                  if (_isTenant) const DropdownMenuItem(value: 'landlord', child: Text('Contact Landlord')), 
+                  if (!_isTenant)
+                    const DropdownMenuItem(
+                        value: 'direct', child: Text('Direct Message')),
+                  const DropdownMenuItem(
+                      value: 'group', child: Text('Group Message (Apartment)')),
+                  if (_isTenant)
+                    const DropdownMenuItem(
+                        value: 'landlord', child: Text('Contact Landlord')),
                 ],
                 onChanged: (value) {
                   setState(() {
                     _messageType = value!;
-                    
+
                     if (value == 'landlord') {
                       // _selectedReceiverId should be set to landlord ID fetched in _initData
                       if (_landlordId != null) {
                         _selectedReceiverId = _landlordId;
                       } else {
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Landlord information not available.')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Landlord information not available.')));
                       }
                     } else {
                       _selectedReceiverId = null;
                     }
-                    
-                    if (_messageType == 'direct' && _selectedPropertyId != null && !_isTenant) {
+
+                    if (_messageType == 'direct' &&
+                        _selectedPropertyId != null &&
+                        !_isTenant) {
                       Provider.of<UnitProvider>(context, listen: false)
                           .fetchUnits(_selectedPropertyId!);
                     }
@@ -338,32 +358,34 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
 
               // Property Dropdown (Hidden for Tenant, they are locked to their unit's property)
               if (!_isTenant)
-              Consumer<PropertyProvider>(
-                builder: (context, provider, child) {
-                  return DropdownButtonFormField<int>(
-                    value: _selectedPropertyId,
-                    decoration: const InputDecoration(
-                      labelText: 'Select Property',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.apartment),
-                    ),
-                    items: provider.properties.map((Property prop) {
-                      return DropdownMenuItem<int>(
-                        value: prop.id,
-                        child: Text(prop.name),
-                      );
-                    }).toList(),
-                    onChanged: _onPropertyChanged,
-                    validator: (value) => value == null ? 'Please select a property' : null,
-                  );
-                },
-              ),
-              
+                Consumer<PropertyProvider>(
+                  builder: (context, provider, child) {
+                    return DropdownButtonFormField<int>(
+                      value: _selectedPropertyId,
+                      decoration: const InputDecoration(
+                        labelText: 'Select Property',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.apartment),
+                      ),
+                      items: provider.properties.map((Property prop) {
+                        return DropdownMenuItem<int>(
+                          value: prop.id,
+                          child: Text(prop.name),
+                        );
+                      }).toList(),
+                      onChanged: _onPropertyChanged,
+                      validator: (value) =>
+                          value == null ? 'Please select a property' : null,
+                    );
+                  },
+                ),
+
               if (_isTenant && _selectedPropertyId != null)
-                 Padding(
-                   padding: const EdgeInsets.only(bottom: 16.0),
-                   child: Text("Messaging for Property ID: $_selectedPropertyId", style: const TextStyle(color: Colors.grey)),
-                 ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text("Messaging for Property ID: $_selectedPropertyId",
+                      style: const TextStyle(color: Colors.grey)),
+                ),
 
               const SizedBox(height: 16),
 
@@ -412,7 +434,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
                   alignLabelWithHint: true,
                 ),
                 validator: (value) {
-                  if ((value == null || value.isEmpty) && _selectedImage == null) {
+                  if ((value == null || value.isEmpty) &&
+                      _selectedImage == null) {
                     return 'Please enter a message or select an image';
                   }
                   return null;
@@ -424,14 +447,14 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: _webImageBytes != null 
-                        ? Image.memory(
-                            _webImageBytes!,
-                            height: 150,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          )
-                        : const SizedBox(),
+                      child: _webImageBytes != null
+                          ? Image.memory(
+                              _webImageBytes!,
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : const SizedBox(),
                     ),
                     Positioned(
                       top: 8,
@@ -449,7 +472,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
                             color: Colors.black54,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close, color: Colors.white, size: 20),
+                          child: const Icon(Icons.close,
+                              color: Colors.white, size: 20),
                         ),
                       ),
                     ),

@@ -15,9 +15,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      Provider.of<AuthProvider>(context, listen: false).loadUser();
-    });
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    Future.microtask(() => authProvider.loadUser());
   }
 
   @override

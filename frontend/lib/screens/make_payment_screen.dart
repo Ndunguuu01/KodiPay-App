@@ -46,6 +46,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
       final userId = await SecureStorage.getUserId();
 
       if (userId == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('User not found. Please login again.')),
         );
@@ -69,6 +70,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
       final success = await provider.makePayment(payment);
 
       if (success && mounted) {
+        if (!mounted) return;
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payment initiated successfully!')),
@@ -95,6 +97,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
 
     final userId = await SecureStorage.getUserId();
     if (userId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not found. Please login again.')),
       );
@@ -102,7 +105,7 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
     }
 
     int unitId = widget.unitId ?? int.tryParse(_unitIdController.text) ?? 1;
-
+    if (!mounted) return;
     await StripeService().makePayment(context, amount, 'usd', userId, unitId);
   }
 
@@ -183,10 +186,12 @@ class _MakePaymentScreenState extends State<MakePaymentScreen> {
                                 fillColor: Colors.grey[50],
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty)
+                                if (value == null || value.isEmpty) {
                                   return 'Enter amount';
-                                if (double.tryParse(value) == null)
+                                }
+                                if (double.tryParse(value) == null) {
                                   return 'Invalid number';
+                                }
                                 return null;
                               },
                             ),

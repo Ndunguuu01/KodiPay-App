@@ -33,8 +33,15 @@ class StripeService {
         ),
       );
 
-      await displayPaymentSheet(context);
-      await confirmPayment(context, clientSecret, amount, tenantId, unitId);
+      // 3. Display Payment Sheet
+      if (context.mounted) {
+        await displayPaymentSheet(context);
+      }
+
+      // 4. Confirm Payment on Backend
+      if (context.mounted) {
+        await confirmPayment(context, clientSecret, amount, tenantId, unitId);
+      }
     } catch (e) {
       debugPrint('Stripe Payment Error: $e');
       if (context.mounted) {

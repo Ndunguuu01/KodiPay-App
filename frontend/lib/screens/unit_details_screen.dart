@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,17 +36,20 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     // Note: In a real app, we might want a specific endpoint for unit payments
     // For now, we'll fetch all payments and filter (or rely on provider if it supports filtering)
     // Ideally, PaymentProvider should have a method to fetch by unitId
-    
+
     // Simulating fetch for now or using existing provider
-    final paymentProvider = Provider.of<PaymentProvider>(context, listen: false);
-    await paymentProvider.fetchPayments(); // This fetches all payments for the user (if tenant) or all for landlord?
+    final paymentProvider =
+        Provider.of<PaymentProvider>(context, listen: false);
+    await paymentProvider
+        .fetchPayments(); // This fetches all payments for the user (if tenant) or all for landlord?
     // We need to verify what fetchPayments does for a landlord.
     // If it fetches ALL payments, we can filter here.
-    
+
     // Fetch tenant details if tenantId exists
     if (widget.unit.tenantId != null) {
       try {
-        final userDetails = await UserService().getUserById(widget.unit.tenantId!);
+        final userDetails =
+            await UserService().getUserById(widget.unit.tenantId!);
         if (mounted) {
           setState(() {
             _tenantDetails = userDetails;
@@ -53,13 +57,15 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
         }
       } catch (e) {
         // Handle error silently or show snackbar
-        print('Error fetching tenant details: $e');
+        debugPrint('Error fetching tenant details: $e');
       }
     }
 
     if (mounted) {
       setState(() {
-        _unitPayments = paymentProvider.payments.where((p) => p.unitId == widget.unit.id).toList();
+        _unitPayments = paymentProvider.payments
+            .where((p) => p.unitId == widget.unit.id)
+            .toList();
         _isLoading = false;
       });
     }
@@ -70,7 +76,8 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Unit'),
-        content: const Text('Are you sure you want to delete this unit? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this unit? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -119,12 +126,12 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               );
               // Refresh data after edit
               if (mounted) {
-                 // We might need to re-fetch unit details or rely on provider update
-                 // Since we passed unit object, it might be stale. 
-                 // Ideally we should fetch unit by ID again or pop back.
-                 // For now, let's just pop back to property details to see updated list is safer
-                 // Or we can just setState if we had a way to refresh 'widget.unit'
-                 Navigator.of(context).pop();
+                // We might need to re-fetch unit details or rely on provider update
+                // Since we passed unit object, it might be stale.
+                // Ideally we should fetch unit by ID again or pop back.
+                // For now, let's just pop back to property details to see updated list is safer
+                // Or we can just setState if we had a way to refresh 'widget.unit'
+                Navigator.of(context).pop();
               }
             },
           ),
@@ -143,7 +150,8 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
             const SizedBox(height: 24),
             Text(
               'Payment History',
-              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(
+                  fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             _buildPaymentHistory(),
@@ -175,22 +183,27 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                   children: [
                     Text(
                       widget.unit.tenantName ?? 'Unknown Tenant',
-                      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Occupant',
-                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
+                      style:
+                          GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
               ],
             ),
             const Divider(height: 32),
-            _buildInfoRow(Icons.email, 'Email', _tenantDetails?['email'] ?? 'N/A'),
+            _buildInfoRow(
+                Icons.email, 'Email', _tenantDetails?['email'] ?? 'N/A'),
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.phone, 'Phone', _tenantDetails?['phone'] ?? 'N/A'),
+            _buildInfoRow(
+                Icons.phone, 'Phone', _tenantDetails?['phone'] ?? 'N/A'),
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.attach_money, 'Rent Amount', 'KES ${widget.unit.rentAmount}'),
+            _buildInfoRow(Icons.attach_money, 'Rent Amount',
+                'KES ${widget.unit.rentAmount}'),
             const SizedBox(height: 12),
             _buildInfoRow(Icons.calendar_today, 'Lease Status', 'Active'),
           ],
@@ -207,8 +220,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            Text(label,
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(value,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
           ],
         ),
       ],
@@ -234,10 +250,14 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: payment.status == 'completed' ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              backgroundColor: payment.status == 'completed'
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.orange.withOpacity(0.1),
               child: Icon(
                 payment.status == 'completed' ? Icons.check : Icons.access_time,
-                color: payment.status == 'completed' ? Colors.green : Colors.orange,
+                color: payment.status == 'completed'
+                    ? Colors.green
+                    : Colors.orange,
               ),
             ),
             title: Text('KES ${payment.amount}'),

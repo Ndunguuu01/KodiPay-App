@@ -16,12 +16,12 @@ class _MyBillsScreenState extends State<MyBillsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      final userId = Provider.of<AuthProvider>(context, listen: false).userId;
-      if (userId != null) {
-        Provider.of<BillProvider>(context, listen: false).fetchBillsByTenant(userId);
-      }
-    });
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final billProvider = Provider.of<BillProvider>(context, listen: false);
+    final userId = auth.userId;
+    if (userId != null) {
+      Future.microtask(() => billProvider.fetchBillsByTenant(userId));
+    }
   }
 
   void _payBill(int billId, double amount, int unitId, int tenantId) async {
@@ -93,9 +93,12 @@ class _MyBillsScreenState extends State<MyBillsScreen> {
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isPaid ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                              color: isPaid
+                                  ? Colors.green.withOpacity(0.1)
+                                  : Colors.red.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -119,7 +122,8 @@ class _MyBillsScreenState extends State<MyBillsScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text('Due Date: ${bill.dueDate}'),
-                      if (bill.description != null && bill.description!.isNotEmpty)
+                      if (bill.description != null &&
+                          bill.description!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
@@ -132,7 +136,8 @@ class _MyBillsScreenState extends State<MyBillsScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () => _payBill(bill.id!, bill.amount, bill.unitId, bill.tenantId),
+                            onPressed: () => _payBill(bill.id!, bill.amount,
+                                bill.unitId, bill.tenantId),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppConstants.primaryColor,
                               foregroundColor: Colors.white,

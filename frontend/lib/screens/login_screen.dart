@@ -27,8 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<AuthProvider>(context, listen: false).clearError());
+    final authProv = Provider.of<AuthProvider>(context, listen: false);
+    Future.microtask(() => authProv.clearError());
     _checkBiometrics();
   }
 
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('biometric_email', _emailController.text.trim());
         await prefs.setString('biometric_password', _passwordController.text);
-
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
@@ -76,17 +76,23 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleGoogleSignIn() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: kIsWeb ? null : '505045116360-am456l7j5thlbub4qiclba1q8bl41sav.apps.googleusercontent.com',
-        clientId: kIsWeb ? '505045116360-am456l7j5thlbub4qiclba1q8bl41sav.apps.googleusercontent.com' : null,
+        serverClientId: kIsWeb
+            ? null
+            : '505045116360-am456l7j5thlbub4qiclba1q8bl41sav.apps.googleusercontent.com',
+        clientId: kIsWeb
+            ? '505045116360-am456l7j5thlbub4qiclba1q8bl41sav.apps.googleusercontent.com'
+            : null,
       );
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      
+
       if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
         final String? idToken = googleAuth.idToken;
 
         if (idToken != null && mounted) {
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          final authProvider =
+              Provider.of<AuthProvider>(context, listen: false);
           final success = await authProvider.googleLogin(idToken);
 
           if (success && mounted) {
@@ -97,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (error) {
-      print(error);
+      debugPrint('$error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Google Sign-In failed: $error')),
@@ -113,7 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email == null || password == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login with password first to enable biometrics')),
+        const SnackBar(
+            content:
+                Text('Please login with password first to enable biometrics')),
       );
       return;
     }
@@ -134,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (authenticated && mounted) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final success = await authProvider.login(email, password);
-      
+
       if (success && mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
@@ -158,16 +166,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Welcome Back',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppConstants.primaryColor,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: AppConstants.primaryColor,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign in to continue',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
@@ -208,7 +216,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: Text(
                           auth.errorMessage!,
-                          style: const TextStyle(color: AppConstants.errorColor),
+                          style:
+                              const TextStyle(color: AppConstants.errorColor),
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -231,8 +240,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         child: auth.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('Login', style: TextStyle(fontSize: 16)),
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text('Login',
+                                style: TextStyle(fontSize: 16)),
                       );
                     },
                   ),
@@ -257,7 +268,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Center(
                     child: IconButton(
                       onPressed: _authenticate,
-                      icon: const Icon(Icons.fingerprint, size: 48, color: AppConstants.primaryColor),
+                      icon: const Icon(Icons.fingerprint,
+                          size: 48, color: AppConstants.primaryColor),
                       tooltip: 'Login with Biometrics',
                     ),
                   ),
@@ -270,7 +282,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterScreen()),
                         );
                       },
                       child: const Text('Register'),
