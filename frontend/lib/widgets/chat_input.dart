@@ -50,7 +50,7 @@ class _ChatInputState extends State<ChatInput> {
     if (_controller.text.trim().isEmpty && _selectedImage == null) return;
 
     widget.onSendMessage(_controller.text.trim(), _selectedImage);
-    
+
     _controller.clear();
     setState(() {
       _selectedImage = null;
@@ -83,21 +83,23 @@ class _ChatInputState extends State<ChatInput> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: kIsWeb 
-                      ? Image.network(
-                          _selectedImage!.path,
-                          height: 60,
-                          width: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => const Icon(Icons.image),
-                        )
-                      : Image.file(
-                          File(_selectedImage!.path),
-                          height: 60,
-                          width: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => const Icon(Icons.image),
-                        ),
+                    child: kIsWeb
+                        ? Image.network(
+                            _selectedImage!.path,
+                            height: 60,
+                            width: 60,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) =>
+                                const Icon(Icons.image),
+                          )
+                        : Image.file(
+                            File(_selectedImage!.path),
+                            height: 60,
+                            width: 60,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) =>
+                                const Icon(Icons.image),
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -137,7 +139,8 @@ class _ChatInputState extends State<ChatInput> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.emoji_emotions_outlined, color: Colors.grey),
+                        icon: const Icon(Icons.emoji_emotions_outlined,
+                            color: Colors.grey),
                         onPressed: () {}, // TODO: Implement Emoji Picker
                       ),
                       Expanded(
@@ -146,7 +149,8 @@ class _ChatInputState extends State<ChatInput> {
                           decoration: const InputDecoration(
                             hintText: 'Message',
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 10),
                           ),
                           minLines: 1,
                           maxLines: 5,
@@ -158,14 +162,16 @@ class _ChatInputState extends State<ChatInput> {
                       ),
                       if (_selectedImage == null && _controller.text.isEmpty)
                         IconButton(
-                          icon: const Icon(Icons.camera_alt, color: Colors.grey),
+                          icon:
+                              const Icon(Icons.camera_alt, color: Colors.grey),
                           onPressed: () async {
-                             final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-                             if (image != null) {
-                               setState(() {
-                                 _selectedImage = image;
-                               });
-                             }
+                            final XFile? image = await _picker.pickImage(
+                                source: ImageSource.camera);
+                            if (image != null) {
+                              setState(() {
+                                _selectedImage = image;
+                              });
+                            }
                           },
                         ),
                     ],

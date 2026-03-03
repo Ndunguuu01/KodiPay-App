@@ -10,6 +10,8 @@ class Lease {
   final String status;
   final String? terms;
   final Unit? unit;
+  final String? tenantName; // from nested tenant object
+  final String? tenantEmail;
 
   Lease({
     this.id,
@@ -21,6 +23,8 @@ class Lease {
     required this.status,
     this.terms,
     this.unit,
+    this.tenantName,
+    this.tenantEmail,
   });
 
   factory Lease.fromJson(Map<String, dynamic> json) {
@@ -34,6 +38,8 @@ class Lease {
       status: json['status'],
       terms: json['terms'],
       unit: json['unit'] != null ? Unit.fromJson(json['unit']) : null,
+      tenantName: json['tenant'] != null ? json['tenant']['name'] : null,
+      tenantEmail: json['tenant'] != null ? json['tenant']['email'] : null,
     );
   }
 

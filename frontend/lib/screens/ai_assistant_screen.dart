@@ -15,7 +15,8 @@ class AIAssistantScreen extends StatefulWidget {
 
 class _AIAssistantScreenState extends State<AIAssistantScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, String>> _messages = []; // {sender: 'user'/'ai', text: '...'}
+  final List<Map<String, String>> _messages =
+      []; // {sender: 'user'/'ai', text: '...'}
   final AIService _aiService = AIService();
   bool _isLoading = false;
 
@@ -25,7 +26,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     // Initial greeting
     _messages.add({
       'sender': 'ai',
-      'text': 'Hi! I\'m your KodiPay Assistant. Ask me about rent, bills, or maintenance!'
+      'text':
+          'Hi! I\'m your KodiPay Assistant. Ask me about rent, bills, or maintenance!'
     });
   }
 
@@ -52,14 +54,16 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
       await billProvider.fetchBillsByTenant(authProvider.userId!);
     }
 
-    final activeLease = leaseProvider.leases.firstWhere(
-      (l) => l.status == 'active' || l.status == 'pending',
-      orElse: () => leaseProvider.leases.isNotEmpty ? leaseProvider.leases.first : null as dynamic,
-    );
+    final activeLease = leaseProvider.leases.cast<dynamic>().firstWhere(
+          (l) => l.status == 'active' || l.status == 'pending',
+          orElse: () => leaseProvider.leases.isNotEmpty
+              ? leaseProvider.leases.first
+              : null,
+        );
 
     final contextData = {
       'userName': authProvider.userName,
-      'rentAmount': activeLease.rentAmount ?? 0.0,
+      'rentAmount': activeLease?.rentAmount ?? 0.0,
       'bills': billProvider.bills,
     };
 
@@ -97,18 +101,22 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                 final msg = _messages[index];
                 final isUser = msg['sender'] == 'user';
                 return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isUser ? AppConstants.primaryColor : Colors.grey[200],
+                      color:
+                          isUser ? AppConstants.primaryColor : Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.75),
                     child: Text(
                       msg['text']!,
-                      style: TextStyle(color: isUser ? Colors.white : Colors.black87),
+                      style: TextStyle(
+                          color: isUser ? Colors.white : Colors.black87),
                     ),
                   ),
                 );
@@ -132,7 +140,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),

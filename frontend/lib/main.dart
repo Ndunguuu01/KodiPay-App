@@ -28,7 +28,7 @@ void main() async {
   } catch (e) {
     print('AdService init failed: $e');
   }
-  
+
   // Initialize Notification Service
   try {
     final notificationService = NotificationService();
@@ -65,7 +65,7 @@ class KodiPayApp extends StatelessWidget {
             seedColor: AppConstants.primaryColor,
             primary: AppConstants.primaryColor,
             secondary: AppConstants.secondaryColor,
-            background: AppConstants.backgroundColor,
+            surface: AppConstants.backgroundColor,
           ),
           useMaterial3: true,
           textTheme: GoogleFonts.poppinsTextTheme(),

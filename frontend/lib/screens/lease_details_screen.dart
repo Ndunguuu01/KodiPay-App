@@ -30,8 +30,11 @@ class LeaseDetailsScreen extends StatelessWidget {
             _buildDetailCard(
               title: 'Unit Information',
               children: [
-                _buildDetailRow('Unit Number', lease.unit?.unitNumber ?? 'Unknown'),
-                _buildDetailRow('Property', lease.unit?.propertyId?.toString() ?? 'Unknown'),
+                _buildDetailRow(
+                    'Unit Number', lease.unit?.unitNumber ?? 'Unknown'),
+                _buildDetailRow('Property',
+                    lease.unit?.propertyId?.toString() ?? 'Unknown'),
+              ],
             ),
             const SizedBox(height: 16),
             _buildDetailCard(
@@ -39,9 +42,10 @@ class LeaseDetailsScreen extends StatelessWidget {
               children: [
                 _buildDetailRow('Start Date', lease.startDate ?? 'Unknown'),
                 _buildDetailRow('End Date', lease.endDate ?? 'Unknown'),
-                _buildDetailRow('Rent Amount', 'KES ${lease.rentAmount.toStringAsFixed(2)}'),
-                _buildDetailRow('Status', lease.status.toUpperCase(), 
-                  valueColor: _getStatusColor(lease.status)),
+                _buildDetailRow('Rent Amount',
+                    'KES ${lease.rentAmount.toStringAsFixed(2)}'),
+                _buildDetailRow('Status', lease.status.toUpperCase(),
+                    valueColor: _getStatusColor(lease.status)),
               ],
             ),
             const SizedBox(height: 16),
@@ -53,7 +57,7 @@ class LeaseDetailsScreen extends StatelessWidget {
                 ],
               ),
             const SizedBox(height: 32),
-            
+
             // Actions
             Consumer<LeaseProvider>(
               builder: (context, provider, child) {
@@ -66,15 +70,19 @@ class LeaseDetailsScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        final success = await provider.signLease(lease.id!, userId!);
+                        final success =
+                            await provider.signLease(lease.id!, userId!);
                         if (success && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Lease signed successfully!')),
+                            const SnackBar(
+                                content: Text('Lease signed successfully!')),
                           );
                           Navigator.of(context).pop();
                         } else if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(provider.errorMessage ?? 'Failed to sign lease')),
+                            SnackBar(
+                                content: Text(provider.errorMessage ??
+                                    'Failed to sign lease')),
                           );
                         }
                       },
@@ -89,7 +97,7 @@ class LeaseDetailsScreen extends StatelessWidget {
                 }
 
                 if (isLandlord && lease.status == 'active') {
-                   return SizedBox(
+                  return SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
@@ -98,30 +106,39 @@ class LeaseDetailsScreen extends StatelessWidget {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Terminate Lease'),
-                            content: const Text('Are you sure you want to terminate this lease? This action cannot be undone.'),
+                            content: const Text(
+                                'Are you sure you want to terminate this lease? This action cannot be undone.'),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
                                 child: const Text('Cancel'),
                               ),
                               TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: const Text('Terminate', style: TextStyle(color: Colors.red)),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('Terminate',
+                                    style: TextStyle(color: Colors.red)),
                               ),
                             ],
                           ),
                         );
 
                         if (confirm == true) {
-                          final success = await provider.terminateLease(lease.id!, userId!);
+                          final success =
+                              await provider.terminateLease(lease.id!, userId!);
                           if (success && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Lease terminated successfully!')),
+                              const SnackBar(
+                                  content:
+                                      Text('Lease terminated successfully!')),
                             );
                             Navigator.of(context).pop();
                           } else if (context.mounted) {
-                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(provider.errorMessage ?? 'Failed to terminate lease')),
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(provider.errorMessage ??
+                                      'Failed to terminate lease')),
                             );
                           }
                         }
@@ -145,7 +162,8 @@ class LeaseDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailCard({required String title, required List<Widget> children}) {
+  Widget _buildDetailCard(
+      {required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
       child: Padding(

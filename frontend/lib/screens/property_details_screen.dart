@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../services/unit_service.dart';
+import '../utils/secure_storage.dart';
 import 'package:provider/provider.dart';
 import '../models/property.dart';
 import '../models/unit.dart';
@@ -115,7 +114,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             ? () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => UnitDetailsScreen(unit: unit),
+                                    builder: (_) =>
+                                        UnitDetailsScreen(unit: unit),
                                   ),
                                 );
                               }
@@ -135,8 +135,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           ),
                         ),
                         title: Text(
-                          unit.status == 'occupied' && unit.tenantName != null 
-                              ? unit.tenantName! 
+                          unit.status == 'occupied' && unit.tenantName != null
+                              ? unit.tenantName!
                               : 'Unit ${unit.unitNumber}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -161,7 +161,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           children: [
                             if (unit.status == 'occupied')
                               IconButton(
-                                icon: const Icon(Icons.receipt_long, color: Colors.orange),
+                                icon: const Icon(Icons.receipt_long,
+                                    color: Colors.orange),
                                 tooltip: 'Add Bill',
                                 onPressed: () {
                                   Navigator.of(context).push(
@@ -170,7 +171,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                         unitId: unit.id!,
                                         tenantId: unit.tenantId!,
                                         unitNumber: unit.unitNumber,
-                                        tenantName: unit.tenantName ?? 'Unknown',
+                                        tenantName:
+                                            unit.tenantName ?? 'Unknown',
                                       ),
                                     ),
                                   );
@@ -178,10 +180,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               ),
                             unit.status == 'vacant'
                                 ? IconButton(
-                                    icon: const Icon(Icons.person_add, color: AppConstants.primaryColor),
-                                    onPressed: () => _showAssignTenantDialog(context, unit),
+                                    icon: const Icon(Icons.person_add,
+                                        color: AppConstants.primaryColor),
+                                    onPressed: () =>
+                                        _showAssignTenantDialog(context, unit),
                                   )
-                                : const SizedBox.shrink(), // Placeholder for more options
+                                : const SizedBox
+                                    .shrink(), // Placeholder for more options
                           ],
                         ),
                       ),
@@ -208,13 +213,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   void _showDebugInfo(BuildContext context) async {
-    final unitService = UnitService();
     try {
-      // Fetch raw data manually to inspect
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken');
+      final token = await SecureStorage.getToken();
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}/properties/${widget.property.id}/units'),
+        Uri.parse(
+            '${AppConstants.baseUrl}/properties/${widget.property.id}/units'),
         headers: {
           'Content-Type': 'application/json',
           'x-access-token': token ?? '',
@@ -240,7 +243,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Debug Error: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Debug Error: $e')));
     }
   }
 
