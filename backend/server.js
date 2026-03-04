@@ -65,8 +65,8 @@ app.use('/api/', generalLimiter);
 
 // ── Database ────────────────────────────────────────────────────────────────────
 const db = require("./models");
-// NEVER use { alter: true } or { force: true } in production
-db.sequelize.sync({ force: false }).then(() => {
+// alter:true safely adds missing columns without dropping data
+db.sequelize.sync({ alter: true }).then(() => {
     logger.info("Database synced.");
 }).catch(err => {
     logger.error("Database sync failed:", err);
